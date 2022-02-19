@@ -84,6 +84,9 @@ const borderClass = computed(() => {
 
 const winnerClass = ref('');
 
+function isActiveCell(i: number) {
+  return props.active && (!playerXMarks.value.includes(i) && !playerOMarks.value.includes(i));
+}
 </script>
 
 <template>
@@ -92,6 +95,7 @@ const winnerClass = ref('');
   >
     <Cell
       v-for="i in 9"
+      :active="isActiveCell(i)"
       @click="placeMark(i, currentPlayer)"
     >{{ playerXMarks.includes(i) ? 'X' : playerOMarks.includes(i) ? 'O' : '' }}</Cell>
   </div>
