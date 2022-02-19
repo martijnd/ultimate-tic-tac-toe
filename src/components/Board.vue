@@ -64,8 +64,8 @@ function placeMark(i: number, player: string) {
 
 }
 
-function isSame(array1: number[], array2: number[]) {
-  return (array1.length === array2.length) && array1.sort().every((element, index) => element === array2.sort()[index]);
+function isSame(winningMoveArray: number[], playerArray: number[]) {
+  return winningMoveArray.every(x => playerArray.includes(x));
 };
 
 const borderClass = computed(() => {

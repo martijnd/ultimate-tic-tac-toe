@@ -9,7 +9,7 @@ defineProps({
 
 <template>
   <div
-    :class="`p-4 border border-slate-600 text-white h-12 w-12 ${active ? 'bg-yellow-200' : ''}`"
+    :class="`p-4 border border-slate-600 text-white h-12 w-12 ${active ? 'bg-yellow-200/50' : ''}`"
   >
     <slot />
   </div>

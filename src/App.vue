@@ -24,6 +24,7 @@ const winningMoves = [
 ];
 const allBoards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const availableBoards = ref(allBoards);
+const wonBoards = ref<number[]>([]);
 
 function onPlayerWon(player: 'X' | 'O', index: number) {
   if (player === 'X') {
@@ -32,18 +33,25 @@ function onPlayerWon(player: 'X' | 'O', index: number) {
     playerOMarks.value = [...playerOMarks.value, index];
   }
 
+  wonBoards.value = [...wonBoards.value, index];
+
   if (winningMoves.some(x => isSame(x, playerOMarks.value)) || winningMoves.some(x => isSame(x, playerXMarks.value))) {
     console.log(`player ${player} won!`);
+    // Handle won state
     return;
   }
 }
 
-function isSame(array1: number[], array2: number[]) {
-  return (array1.length === array2.length) && array1.sort().every((element, index) => element === array2.sort()[index]);
+function isSame(winningMoveArray: number[], playerArray: number[]) {
+  return winningMoveArray.every(x => playerArray.includes(x));
 };
 
 function onTurnChanged(index: number) {
   currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';
+  if (wonBoards.value.includes(index)) {
+    availableBoards.value = allBoards.filter(x => !wonBoards.value.includes(x));
+    return;
+  }
   availableBoards.value = [index];
 }
 
