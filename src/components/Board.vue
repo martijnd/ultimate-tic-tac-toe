@@ -39,7 +39,9 @@ const winningMoves = [
 
 const playerXMarks = ref<number[]>([]);
 const playerOMarks = ref<number[]>([]);
+const winnerClass = ref('');
 const done = ref(false);
+
 function placeMark(i: number, player: string) {
   if (!props.active) {
     return;
@@ -68,21 +70,6 @@ function isSame(winningMoveArray: number[], playerArray: number[]) {
   return winningMoveArray.every(x => playerArray.includes(x));
 };
 
-const borderClass = computed(() => {
-  return {
-    1: 'border-r-2 border-b-2',
-    2: 'border-x-2 border-b-2',
-    3: 'border-l-2 border-b-2',
-    4: 'border-y-2 border-r-2',
-    5: 'border-2',
-    6: 'border-y-2 border-l-2',
-    7: 'border-t-2 border-r-2',
-    8: 'border-t-2 border-x-2',
-    9: 'border-t-2 border-l-2'
-  }[props.index];
-})
-
-const winnerClass = ref('');
 
 function isActiveCell(i: number) {
   return props.active && (!playerXMarks.value.includes(i) && !playerOMarks.value.includes(i));
@@ -90,9 +77,7 @@ function isActiveCell(i: number) {
 </script>
 
 <template>
-  <div
-    :class="`max-w-xl grid grid-cols-3 grid-rows-3 ${winnerClass}`"
-  >
+  <div :class="`max-w-xl grid grid-cols-3 grid-rows-3 ${winnerClass}`">
     <Cell
       v-for="i in 9"
       :active="isActiveCell(i)"

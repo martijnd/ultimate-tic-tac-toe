@@ -25,6 +25,7 @@ const winningMoves = [
 const allBoards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const availableBoards = ref(allBoards);
 const wonBoards = ref<number[]>([]);
+const wonPlayer = ref('');
 
 function onPlayerWon(player: 'X' | 'O', index: number) {
   if (player === 'X') {
@@ -36,13 +37,11 @@ function onPlayerWon(player: 'X' | 'O', index: number) {
   wonBoards.value = [...wonBoards.value, index];
 
   if (winningMoves.some(x => isSame(x, playerOMarks.value)) || winningMoves.some(x => isSame(x, playerXMarks.value))) {
-    console.log(`player ${player} won!`);
     wonPlayer.value = player;
     return;
   }
 }
 
-const wonPlayer = ref('');
 
 function isSame(winningMoveArray: number[], playerArray: number[]) {
   return winningMoveArray.every(x => playerArray.includes(x));
@@ -62,10 +61,12 @@ function onTurnChanged(index: number) {
 <template>
   <div class="h-screen w-screen bg-slate-900 grid place-items-center">
     <div>
-      <div class="text-white font-bold text-center text-4xl mb-4">
-        {{ wonPlayer ? `Player ${wonPlayer} won!` : `Player ${currentPlayer}'s turn` }}
-      </div>
-      <div :class="`grid grid-rows-3 grid-cols-3 select-none gap-1 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`">
+      <div
+        class="text-white font-bold text-center text-4xl mb-4"
+      >{{ wonPlayer ? `Player ${wonPlayer} won!` : `Player ${currentPlayer}'s turn` }}</div>
+      <div
+        :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`"
+      >
         <Board
           v-for="i in 9"
           :index="(i as RangeType)"
@@ -76,7 +77,6 @@ function onTurnChanged(index: number) {
         ></Board>
       </div>
     </div>
-    
   </div>
 </template>
 
