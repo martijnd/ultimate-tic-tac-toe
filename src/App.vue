@@ -47,9 +47,22 @@ function isSame(winningMoveArray: number[], playerArray: number[]) {
   return winningMoveArray.every(x => playerArray.includes(x));
 };
 
-function onTurnChanged(index: number) {
+const marks = ref<Record<number, number[]>>({
+  1: [],
+  2: [],
+  3: [],
+  4: [],
+  5: [],
+  6: [],
+  7: [],
+  8: [],
+  9: []
+});
+
+function onTurnChanged(index: number, boardIndex: number) {
   currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';
-  if (wonBoards.value.includes(index)) {
+  marks.value[boardIndex] = [...marks.value[boardIndex], index];
+  if (wonBoards.value.includes(index) || (marks.value[boardIndex].length === 9 && index === boardIndex)) {
     availableBoards.value = allBoards.filter(x => !wonBoards.value.includes(x));
     return;
   }
@@ -72,7 +85,7 @@ function onTurnChanged(index: number) {
           :index="(i as RangeType)"
           :active="availableBoards.includes(i)"
           :current-player="currentPlayer"
-          @turn-changed="onTurnChanged"
+          @turn-changed="onTurnChanged($event, i)"
           @player-won="onPlayerWon($event, i)"
         ></Board>
       </div>
