@@ -29,17 +29,23 @@ function placeMark(i: number, player: string) {
   } else {
     playerOMarks.value = [...playerOMarks.value, i];
   }
-  console.log(winningMoves, playerXMarks.value);
-  if (winningMoves.some(x => x === playerOMarks.value) || winningMoves.some(x => x === playerXMarks.value)) {
-    console.log('Game is over');
+  
+  if (winningMoves.some(x => isSame(x, playerOMarks.value)) || winningMoves.some(x => isSame(x, playerXMarks.value))) {
+    console.log('Game is over. Player ' + player + ' wins!');
     return;
   }
 
 
   currentPlayer.value = player === 'X' ? 'O' : 'X';
 }
-
 const currentPlayer = ref('X');
+
+function isSame(array1: number[], array2: number[]) {
+  return (array1.length === array2.length) && array1.sort().every(function(element, index) {
+    return element === array2.sort()[index]; 
+  });
+};
+
 </script>
 
 <template>
@@ -48,7 +54,7 @@ const currentPlayer = ref('X');
     <div class="max-w-xl grid grid-cols-3 grid-rows-3">
       <div
         v-for="i in 9"
-        class="p-4 border border-slate-600 text-white"
+        class="p-4 border border-slate-600 text-white h-12 w-12"
         @click="placeMark(i, currentPlayer)"
       >{{ playerXMarks.includes(i) ? 'X' : playerOMarks.includes(i) ? 'O' : '' }}</div>
     </div>
