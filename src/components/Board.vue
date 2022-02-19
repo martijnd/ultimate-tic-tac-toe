@@ -91,7 +91,7 @@ function isActiveCell(i: number) {
 
 <template>
   <div
-    :class="`max-w-xl grid grid-cols-3 grid-rows-3 ${borderClass} ${winnerClass}`"
+    :class="`max-w-xl grid grid-cols-3 grid-rows-3 ${winnerClass}`"
   >
     <Cell
       v-for="i in 9"

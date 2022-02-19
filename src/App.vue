@@ -59,17 +59,22 @@ function onTurnChanged(index: number) {
 
 <template>
   <div class="h-screen w-screen bg-slate-900 grid place-items-center">
-    <!-- Board -->
-    <div class="grid grid-rows-3 grid-cols-3">
-      <Board
-        v-for="i in 9"
-        :index="(i as RangeType)"
-        :active="availableBoards.includes(i)"
-        :current-player="currentPlayer"
-        @turn-changed="onTurnChanged"
-        @player-won="onPlayerWon($event, i)"
-      ></Board>
+    <div>
+      <div class="text-white font-bold text-center text-4xl mb-4">
+        Player {{ currentPlayer }}'s turn
+      </div>
+      <div class="grid grid-rows-3 grid-cols-3 select-none gap-1">
+        <Board
+          v-for="i in 9"
+          :index="(i as RangeType)"
+          :active="availableBoards.includes(i)"
+          :current-player="currentPlayer"
+          @turn-changed="onTurnChanged"
+          @player-won="onPlayerWon($event, i)"
+        ></Board>
+      </div>
     </div>
+    
   </div>
 </template>
 
