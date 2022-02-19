@@ -37,10 +37,12 @@ function onPlayerWon(player: 'X' | 'O', index: number) {
 
   if (winningMoves.some(x => isSame(x, playerOMarks.value)) || winningMoves.some(x => isSame(x, playerXMarks.value))) {
     console.log(`player ${player} won!`);
-    // Handle won state
+    wonPlayer.value = player;
     return;
   }
 }
+
+const wonPlayer = ref('');
 
 function isSame(winningMoveArray: number[], playerArray: number[]) {
   return winningMoveArray.every(x => playerArray.includes(x));
@@ -61,9 +63,9 @@ function onTurnChanged(index: number) {
   <div class="h-screen w-screen bg-slate-900 grid place-items-center">
     <div>
       <div class="text-white font-bold text-center text-4xl mb-4">
-        Player {{ currentPlayer }}'s turn
+        {{ wonPlayer ? `Player ${wonPlayer} won!` : `Player ${currentPlayer}'s turn` }}
       </div>
-      <div class="grid grid-rows-3 grid-cols-3 select-none gap-1">
+      <div :class="`grid grid-rows-3 grid-cols-3 select-none gap-1 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`">
         <Board
           v-for="i in 9"
           :index="(i as RangeType)"
