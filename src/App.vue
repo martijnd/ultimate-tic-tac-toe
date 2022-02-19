@@ -1,73 +1,39 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import Board from './components/Board.vue';
-
+import { Game } from './models/Game';
+import { Board as BoardModel } from './models/Board';
+import useSocketIO from './composables/Socket.io';
+import { Cell } from './models/Cell';
 type RangeType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+const { socket } = useSocketIO();
 
-const playerXMarks = ref<number[]>([]);
-const playerOMarks = ref<number[]>([]);
-const currentPlayer = ref<'X' | 'O'>('X');
-const winningMoves = [
-  // horizontal
-  [1, 2, 3],
-  [4, 5, 6],
-  [7, 8, 9],
-
-  //vertical
-  [1, 4, 7],
-  [2, 5, 8],
-  [3, 6, 9],
-
-  // diagonal
-  [1, 5, 9],
-  [3, 5, 7]
-];
-const allBoards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-const availableBoards = ref(allBoards);
-const wonBoards = ref<number[]>([]);
+const wonBoards = computed(() => game.value.boards.filter(board => board.winner));
 const wonPlayer = ref('');
 
-function onPlayerWon(player: 'X' | 'O', index: number) {
-  if (player === 'X') {
-    playerXMarks.value = [...playerXMarks.value, index];
-  } else {
-    playerOMarks.value = [...playerOMarks.value, index];
-  }
+const game = ref(new Game());
 
-  wonBoards.value = [...wonBoards.value, index];
+function onMarked(board: BoardModel, cell: Cell) {
+  if (board.available && board.index === game.value.lastBoardIndex) {
+    }
+    game.value.placeMark(cell, board);
 
-  if (winningMoves.some(x => isSame(x, playerOMarks.value)) || winningMoves.some(x => isSame(x, playerXMarks.value))) {
-    wonPlayer.value = player;
-    return;
-  }
+
+  // if (wonBoards.value.includes(index) || (marks.value[boardIndex].length === 9 && index === boardIndex)) {
+  //   availableBoards.value = allBoards.filter(x => !wonBoards.value.includes(x));
+  //   return;
+  // }
+  // availableBoards.value = [index];
 }
 
+// onMounted(() => {
+//   const code = window.location.pathname.split('/')[1];
 
-function isSame(winningMoveArray: number[], playerArray: number[]) {
-  return winningMoveArray.every(x => playerArray.includes(x));
-};
-
-const marks = ref<Record<number, number[]>>({
-  1: [],
-  2: [],
-  3: [],
-  4: [],
-  5: [],
-  6: [],
-  7: [],
-  8: [],
-  9: []
-});
-
-function onTurnChanged(index: number, boardIndex: number) {
-  currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';
-  marks.value[boardIndex] = [...marks.value[boardIndex], index];
-  if (wonBoards.value.includes(index) || (marks.value[boardIndex].length === 9 && index === boardIndex)) {
-    availableBoards.value = allBoards.filter(x => !wonBoards.value.includes(x));
-    return;
-  }
-  availableBoards.value = [index];
-}
+//   socket.emit('join', code);
+//   socket.on('accepted', (player) => {
+//     console.log('accepted', player);
+//   });
+// });
 
 </script>
 
@@ -76,17 +42,16 @@ function onTurnChanged(index: number, boardIndex: number) {
     <div>
       <div
         class="text-white font-bold text-center text-4xl mb-4"
-      >{{ wonPlayer ? `Player ${wonPlayer} won!` : `Player ${currentPlayer}'s turn` }}</div>
+      >{{ wonPlayer ? `Player ${wonPlayer} won!` : `Player ${game.currentPlayer}'s turn` }}</div>
       <div
         :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`"
       >
         <Board
-          v-for="i in 9"
-          :index="(i as RangeType)"
-          :active="availableBoards.includes(i)"
-          :current-player="currentPlayer"
-          @turn-changed="onTurnChanged($event, i)"
-          @player-won="onPlayerWon($event, i)"
+          v-for="board of game.boards"
+          :data="board"
+          :last-board-index="game.lastBoardIndex"
+          :available="game.availableBoards.includes(board)"
+          @marked="(cell) => onMarked(board, cell)"
         ></Board>
       </div>
     </div>
