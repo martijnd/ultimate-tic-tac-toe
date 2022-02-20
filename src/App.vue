@@ -7,17 +7,16 @@ import useSocketIO from './composables/Socket.io';
 import { Cell } from './models/Cell';
 import { data } from './data';
 type RangeType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-const { socket } = useSocketIO();
+// const { socket } = useSocketIO();
 
-const wonBoards = computed(() => game.value.boards.filter(board => board.winner));
 const wonPlayer = ref('');
 
-const game = ref(new Game());
+const game = ref(new Game(data, 'X', 5));
 
 function onMarked(board: BoardModel, cell: Cell) {
   if (board.available && board.index === game.value.lastBoardIndex) {
-    }
-    game.value.placeMark(cell, board);
+  }
+  game.value.placeMark(cell, board);
 
 
   // if (wonBoards.value.includes(index) || (marks.value[boardIndex].length === 9 && index === boardIndex)) {
@@ -50,7 +49,7 @@ function onMarked(board: BoardModel, cell: Cell) {
         <Board
           v-for="board of game.boards"
           :data="board"
-          :last-board-index="game.lastBoardIndex"
+          :active="game.availableBoards.map(board => board.index).includes(board.index)"
           :available="game.availableBoards.includes(board)"
           @marked="(cell) => onMarked(board, cell)"
         ></Board>

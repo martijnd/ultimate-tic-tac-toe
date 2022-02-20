@@ -11,7 +11,7 @@ export class Board {
 
   get active() {
     // If all cells are filled
-    if (Object.keys(this.cells.filter(cell => cell.mark)).length >= 9) {
+    if (this.filled) {
       return false;
     }
     // If there is a winner
@@ -39,6 +39,10 @@ export class Board {
 
   get available() {
     return !this.winner;
+  }
+
+  get filled () {
+    return this.cells.every(cell => cell.filled);
   }
 
   setMark(cell: number, mark: string) {

@@ -8,9 +8,9 @@ const props = defineProps({
     type: Object as () => Board,
     required: true
   },
-  lastBoardIndex: {
-    type: Number as () => number,
-    default: undefined
+  active: {
+    type: Boolean,
+    default: false
   },
 })
 
@@ -32,7 +32,7 @@ const winnerClass = computed(() => {
   <div :class="`max-w-xl grid grid-cols-3 grid-rows-3 ${winnerClass}`">
     <Cell
       v-for="cell in data.cells"
-      :active="cell.active && lastBoardIndex === undefined || lastBoardIndex === data.index"
+      :active="active"
       @click="emit('marked', cell)"
     >{{ cell.mark ?? '' }}</Cell>
   </div>
