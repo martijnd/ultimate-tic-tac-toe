@@ -1,39 +1,55 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import Board from './components/Board.vue';
 import { Game } from './models/Game';
 import { Board as BoardModel } from './models/Board';
 import useSocketIO from './composables/Socket.io';
 import { Cell } from './models/Cell';
 import { data } from './data';
-type RangeType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-// const { socket } = useSocketIO();
+const { socket } = useSocketIO();
 
 const wonPlayer = ref('');
 
-const game = ref(new Game(data, 'X', 5));
+const game = ref<Game | null>(null);
+const name = ref('Test' + (Math.random() * 100).toFixed(0));
+const code = window.location.pathname.split('/')[1];
 
 function onMarked(board: BoardModel, cell: Cell) {
-  game.value.placeMark(cell, board);
+  game.value?.placeMark(board, cell, game.value?.currentPlayer);
+  socket.emit('place-mark', { code, boardIndex: board.index, cellIndex: cell.index, player: game.value?.currentPlayer });
 }
 
-// onMounted(() => {
-//   const code = window.location.pathname.split('/')[1];
+function onSubmit() {
+  socket.emit('join', { code, name: name.value });
 
-//   socket.emit('join', code);
-//   socket.on('accepted', (player) => {
-//     console.log('accepted', player);
-//   });
-// });
+  socket.on('accepted', (player) => {
+    console.log('accepted', player);
+    game.value = new Game(player);
+  });
+
+}
+onMounted(() => {
+
+  socket.on('place-mark', ({ code: cCode, boardIndex, cellIndex, player }) => {
+    if (game.value && player !== game.value?.currentPlayer && code === cCode) {
+      const board = game.value?.boards.find(b => b.index = boardIndex);
+      const cell = board?.cells.find((c: Cell) => c.index === cellIndex);
+      console.log(game.value, board, cell)
+      if (board && cell) {
+        game.value?.placeMark(board, cell, player);
+      }
+    }
+  });
+});
 
 </script>
 
 <template>
   <div class="h-screen w-screen bg-slate-900 grid place-items-center">
-    <div>
+    <div v-if="game">
       <div
         class="text-white font-bold text-center text-4xl mb-4"
-      >{{ game.winner ? `Player ${game.winner} won!` : `Player ${game.currentPlayer}'s turn` }}</div>
+      >{{ game.winner ? `Player ${game.winner} won!` : `Player ${game.activePlayer}'s turn` }}</div>
       <div
         :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`"
       >
@@ -45,6 +61,12 @@ function onMarked(board: BoardModel, cell: Cell) {
           @marked="(cell) => onMarked(board, cell)"
         ></Board>
       </div>
+    </div>
+    <div v-else>
+      <form @submit.prevent="onSubmit">
+        <input type="text" v-model="name" />
+        <button type="submit">Enter</button>
+      </form>
     </div>
   </div>
 </template>

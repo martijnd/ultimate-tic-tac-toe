@@ -2,29 +2,35 @@ import { Board } from './Board';
 import { Cell } from './Cell';
 export class Game {
   boards: Board[];
-  currentPlayer: 'X' | 'O' = 'X';
+  currentPlayer: 'X' | 'O';
+  activePlayer: 'X' | 'O' = 'X';
   lastBoardIndex?: number;
 
-  constructor(boards?: Board[], currentPlayer?: 'X' | 'O', lastBoardIndex?: number) {
+  constructor(currentPlayer: 'X' | 'O', boards?: Board[], activePlayer?: 'X' | 'O', lastBoardIndex?: number) {
+    this.currentPlayer = currentPlayer;
     this.boards = boards ?? new Array(9).fill([]).map((_, index) => new Board(index));
-    this.currentPlayer = currentPlayer ?? 'X';
+    this.activePlayer = activePlayer ?? 'X';
     this.lastBoardIndex = lastBoardIndex;
   }
 
-  placeMark(cell: Cell, board: Board) {
+  placeMark(board: Board, cell: Cell, player: 'X' | 'O') {
     // if the board is not the one that should be picked from
+    console.log(board, cell,`Placing mark on board ${board.index} at cell ${cell.index}`);
     if (!this.availableBoards.map(board => board.index).includes(board.index)) {
+      console.log('here')
       return;
     }
-
+    
     // if the cell is already filled or if the board has already been won
     if (cell.filled || !board.active) {
+      console.log(cell, board)
       return;
     }
-
+    
+    console.log('here3')
     this.lastBoardIndex = cell.index;
-    cell.mark = this.currentPlayer;
-    this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+    cell.mark = player;
+    this.activePlayer = this.activePlayer === 'X' ? 'O' : 'X';
   }
 
   get wonBoards() {

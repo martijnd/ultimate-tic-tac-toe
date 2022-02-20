@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { Board } from '../models/Board';
 import Cell from './Cell.vue';
 
