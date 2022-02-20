@@ -14,16 +14,7 @@ const wonPlayer = ref('');
 const game = ref(new Game(data, 'X', 5));
 
 function onMarked(board: BoardModel, cell: Cell) {
-  if (board.available && board.index === game.value.lastBoardIndex) {
-  }
   game.value.placeMark(cell, board);
-
-
-  // if (wonBoards.value.includes(index) || (marks.value[boardIndex].length === 9 && index === boardIndex)) {
-  //   availableBoards.value = allBoards.filter(x => !wonBoards.value.includes(x));
-  //   return;
-  // }
-  // availableBoards.value = [index];
 }
 
 // onMounted(() => {
@@ -42,7 +33,7 @@ function onMarked(board: BoardModel, cell: Cell) {
     <div>
       <div
         class="text-white font-bold text-center text-4xl mb-4"
-      >{{ wonPlayer ? `Player ${wonPlayer} won!` : `Player ${game.currentPlayer}'s turn` }}</div>
+      >{{ game.winner ? `Player ${game.winner} won!` : `Player ${game.currentPlayer}'s turn` }}</div>
       <div
         :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`"
       >

@@ -1,4 +1,5 @@
 import { Cell } from "./Cell";
+import { Game } from "./Game";
 
 export class Board {
   index: number;
@@ -26,19 +27,15 @@ export class Board {
     const Xcells = Object.entries(this.cells).filter(([_, cell]) => cell.mark === 'X').map(([key]) => parseInt(key));
     const Ocells = Object.entries(this.cells).filter(([_, cell]) => cell.mark === 'O').map(([key]) => parseInt(key));
 
-    if (this.WINNING_MOVES.some(move => this.isSame(move, Xcells))) {
+    if (Game.WINNING_MOVES.some(move => Game.isSame(move, Xcells))) {
       return 'X';
     }
 
-    if (this.WINNING_MOVES.some(move => this.isSame(move, Ocells))) {
+    if (Game.WINNING_MOVES.some(move => Game.isSame(move, Ocells))) {
       return 'O';
     }
 
     return null;
-  }
-
-  get available() {
-    return !this.winner;
   }
 
   get filled () {
@@ -48,24 +45,4 @@ export class Board {
   setMark(cell: number, mark: string) {
     this.cells[cell].mark = mark;
   }
-
-  isSame(winningMoveArray: number[], playerArray: number[]) {
-    return winningMoveArray.every(x => playerArray.includes(x));
-  };
-
-  readonly WINNING_MOVES = [
-    // horizontal
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-
-    //vertical
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-
-    // diagonal
-    [0, 4, 8],
-    [2, 4, 6]
-  ];
 }

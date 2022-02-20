@@ -2,7 +2,7 @@ export class Cell {
   index: number;
   mark?: string;
 
-  constructor(index: number, mark?: string) {
+  constructor(index: number, mark?: 'X' | 'O') {
     this.index = index;
     this.mark = mark;
   }

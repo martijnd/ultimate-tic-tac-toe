@@ -13,7 +13,7 @@ export class Game {
 
   placeMark(cell: Cell, board: Board) {
     // if the board is not the one that should be picked from
-    if (this.lastBoardIndex !== undefined && board.index !== this.lastBoardIndex) {
+    if (!this.availableBoards.map(board => board.index).includes(board.index)) {
       return;
     }
 
@@ -32,7 +32,7 @@ export class Game {
   }
 
   get availableBoards() {
-    if (this.lastBoardIndex) {
+    if (this.lastBoardIndex !== undefined) {
       // if the chosen cell index points to a won board OR
       if (this.wonBoards.map(board => board.index).includes(this.lastBoardIndex)
       // if the chosen cell index points to a filled board
@@ -40,11 +40,46 @@ export class Game {
         // display all the boards that are not won and not filled 
         return this.boards.filter(board => board.active);
       }
-      
+
       // Otherwise, only activate the board that was chosen
       return this.boards.filter(board => board.index === this.lastBoardIndex);
     }
     return this.boards.filter(board => board.index !== this.lastBoardIndex);
   }
+
+  get winner () {
+    const Xboards = Object.entries(this.boards).filter(([_, cell]) => cell.winner === 'X').map(([key]) => parseInt(key));
+    const Oboards = Object.entries(this.boards).filter(([_, cell]) => cell.winner === 'O').map(([key]) => parseInt(key));
+
+    if (Game.WINNING_MOVES.some(move => Game.isSame(move, Xboards))) {
+      return 'X';
+    }
+
+    if (Game.WINNING_MOVES.some(move => Game.isSame(move, Oboards))) {
+      return 'O';
+    }
+
+    return null;
+  }
+
+  static readonly WINNING_MOVES = [
+    // horizontal
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+
+    //vertical
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+
+    // diagonal
+    [0, 4, 8],
+    [2, 4, 6]
+  ];
+
+  static isSame(winningMoveArray: number[], playerArray: number[]) {
+    return winningMoveArray.every(x => playerArray.includes(x));
+  };
 }
 

@@ -24,6 +24,8 @@ const winnerClass = computed(() => {
   if (props.data.winner === 'O') {
     return 'bg-red-400/50';
   }
+
+  return '';
 });
 
 </script>
@@ -32,7 +34,7 @@ const winnerClass = computed(() => {
   <div :class="`max-w-xl grid grid-cols-3 grid-rows-3 ${winnerClass}`">
     <Cell
       v-for="cell in data.cells"
-      :active="active"
+      :active="cell.active && active"
       @click="emit('marked', cell)"
     >{{ cell.mark ?? '' }}</Cell>
   </div>
