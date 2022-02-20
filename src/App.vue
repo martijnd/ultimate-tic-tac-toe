@@ -5,6 +5,7 @@ import { Game } from './models/Game';
 import { Board as BoardModel } from './models/Board';
 import useSocketIO from './composables/Socket.io';
 import { Cell } from './models/Cell';
+import { data } from './data';
 type RangeType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 const { socket } = useSocketIO();
 

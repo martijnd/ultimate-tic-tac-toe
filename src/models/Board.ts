@@ -4,9 +4,9 @@ export class Board {
   index: number;
   cells: Cell[];
 
-  constructor(index: number) {
+  constructor(index: number, cells?: Cell[]) {
     this.index = index;
-    this.cells = new Array(9).fill([]).map((_, index) => new Cell(index));
+    this.cells = cells ?? new Array(9).fill([]).map((_, index) => new Cell(index));
   }
 
   get active() {

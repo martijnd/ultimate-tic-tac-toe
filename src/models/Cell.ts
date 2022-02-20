@@ -2,8 +2,9 @@ export class Cell {
   index: number;
   mark?: string;
 
-  constructor(index: number) {
+  constructor(index: number, mark?: string) {
     this.index = index;
+    this.mark = mark;
   }
 
   get filled () {

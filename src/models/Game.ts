@@ -1,9 +1,15 @@
 import { Board } from './Board';
 import { Cell } from './Cell';
 export class Game {
-  boards = new Array(9).fill([]).map((_, index) => new Board(index));
+  boards: Board[];
   currentPlayer: 'X' | 'O' = 'X';
   lastBoardIndex?: number;
+  availableBoards: Board[];
+
+  constructor(boards?: Board[]) {
+    this.boards = boards ?? new Array(9).fill([]).map((_, index) => new Board(index));
+    this.availableBoards = this.boards.filter(board => board.active);
+  }
 
   placeMark(cell: Cell, board: Board) {
     // if the board is not the one that should be picked from
@@ -19,10 +25,6 @@ export class Game {
     this.lastBoardIndex = cell.index;
     cell.mark = this.currentPlayer;
     this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
-  }
-
-  get availableBoards() {
-    return this.boards.filter(board => board.active && board.index !== this.lastBoardIndex);
   }
 }
 
