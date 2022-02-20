@@ -11,7 +11,7 @@ const { socket } = useSocketIO();
 const wonPlayer = ref('');
 
 const game = ref<Game | null>(null);
-const name = ref('Test' + (Math.random() * 100).toFixed(0));
+const name = ref('');
 const code = window.location.pathname.split('/')[1];
 
 function onMarked(board: BoardModel, cell: Cell) {
