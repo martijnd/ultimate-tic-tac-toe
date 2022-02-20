@@ -11,7 +11,7 @@ type RangeType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 const wonPlayer = ref('');
 
-const game = ref(new Game(data, 'X', 5));
+const game = ref(new Game());
 
 function onMarked(board: BoardModel, cell: Cell) {
   game.value.placeMark(cell, board);
