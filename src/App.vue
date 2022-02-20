@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import Board from './components/Board.vue';
 import { Game } from './models/Game';
 import { Board as BoardModel } from './models/Board';
@@ -15,32 +15,38 @@ const name = ref('Test' + (Math.random() * 100).toFixed(0));
 const code = window.location.pathname.split('/')[1];
 
 function onMarked(board: BoardModel, cell: Cell) {
+  // If you're not the active player
+  if (game.value?.activePlayer !== game.value?.currentPlayer) {
+    // TODO: Show an error message
+    return;
+  }
   game.value?.placeMark(board, cell, game.value?.currentPlayer);
-  socket.emit('place-mark', { code, boardIndex: board.index, cellIndex: cell.index, player: game.value?.currentPlayer });
+  socket.emit('place-mark', {
+    code, boardIndex: board.index,
+    cellIndex: cell.index,
+    player: game.value?.currentPlayer
+  });
 }
 
 function onSubmit() {
   socket.emit('join', { code, name: name.value });
 
   socket.on('accepted', (player) => {
-    console.log('accepted', player);
+
     game.value = new Game(player);
+
+    socket.on('place-mark', ({ code: cCode, boardIndex, cellIndex, player }) => {
+      if (game.value && player !== game.value?.currentPlayer && code === cCode) {
+        const board = game.value?.boards.find(b => b.index === boardIndex);
+        const cell = board?.cells.find((c: Cell) => c.index === cellIndex);
+        if (board && cell) {
+          game.value?.placeMark(board, cell, player);
+        }
+      }
+    });
   });
 
 }
-onMounted(() => {
-
-  socket.on('place-mark', ({ code: cCode, boardIndex, cellIndex, player }) => {
-    if (game.value && player !== game.value?.currentPlayer && code === cCode) {
-      const board = game.value?.boards.find(b => b.index = boardIndex);
-      const cell = board?.cells.find((c: Cell) => c.index === cellIndex);
-      console.log(game.value, board, cell)
-      if (board && cell) {
-        game.value?.placeMark(board, cell, player);
-      }
-    }
-  });
-});
 
 </script>
 
@@ -49,7 +55,7 @@ onMounted(() => {
     <div v-if="game">
       <div
         class="text-white font-bold text-center text-4xl mb-4"
-      >{{ game.winner ? `Player ${game.winner} won!` : `Player ${game.activePlayer}'s turn` }}</div>
+      >{{ game.winner ? `Player ${game.winner} won!` : (game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting...') }}</div>
       <div
         :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`"
       >
@@ -64,8 +70,11 @@ onMounted(() => {
     </div>
     <div v-else>
       <form @submit.prevent="onSubmit">
-        <input type="text" v-model="name" />
-        <button type="submit">Enter</button>
+        <input type="text" v-model="name" class="rounded-l p-2" />
+        <button
+          type="submit"
+          class="bg-blue-500 font-bold px-4 py-2 rounded-r text-white"
+        >Enter</button>
       </form>
     </div>
   </div>

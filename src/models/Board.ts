@@ -6,6 +6,7 @@ export class Board {
   cells: Cell[];
 
   constructor(index: number, cells?: Cell[]) {
+    console.log(index)
     this.index = index;
     this.cells = cells ?? new Array(9).fill([]).map((_, index) => new Cell(index));
   }
@@ -40,9 +41,5 @@ export class Board {
 
   get filled () {
     return this.cells.every(cell => cell.filled);
-  }
-
-  setMark(cell: number, mark: string) {
-    this.cells[cell].mark = mark;
   }
 }
