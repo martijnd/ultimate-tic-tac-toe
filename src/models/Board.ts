@@ -6,7 +6,6 @@ export class Board {
   cells: Cell[];
 
   constructor(index: number, cells?: Cell[]) {
-    console.log(index)
     this.index = index;
     this.cells = cells ?? new Array(9).fill([]).map((_, index) => new Cell(index));
   }

@@ -44,8 +44,17 @@ function onSubmit() {
         }
       }
     });
+
+    socket.on('disconnected', () => {
+      showErrorMessage('The opponent has disconnected');
+      game.value = null;
+    });
   });
 
+}
+
+function showErrorMessage(message: string) {
+  alert(message);
 }
 
 </script>
@@ -53,9 +62,12 @@ function onSubmit() {
 <template>
   <div class="h-screen w-screen bg-slate-900 grid place-items-center">
     <div v-if="game">
-      <div
-        class="text-white font-bold text-center text-4xl mb-4"
-      >{{ game.winner ? `Player ${game.winner} won!` : (game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting...') }}</div>
+      <div class="text-white font-bold text-center text-4xl mb-4">
+        <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
+        <template
+          v-else
+        >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting...' }}</template>
+      </div>
       <div
         :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`"
       >

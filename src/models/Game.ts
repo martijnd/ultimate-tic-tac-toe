@@ -14,20 +14,16 @@ export class Game {
   }
 
   placeMark(board: Board, cell: Cell, player: 'X' | 'O') {
-    console.log(board, cell,`Placing mark on board ${board.index} at cell ${cell.index}`);
     // if the board is not the one that should be picked from
     if (!this.availableBoards.map(board => board.index).includes(board.index)) {
-      console.log('the board is not the one that should be picked from')
       return;
     }
     
     // if the cell is already filled or if the board has already been won
     if (cell.filled || !board.active) {
-      console.log('the cell is already filled or if the board has already been won', cell, board)
       return;
     }
     
-    console.log('here3')
     this.lastBoardIndex = cell.index;
     cell.mark = player;
     this.activePlayer = this.activePlayer === 'X' ? 'O' : 'X';
