@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import Board from './components/Board.vue';
 import { Game } from './models/Game';
 import { Board as BoardModel } from './models/Board';
@@ -7,8 +7,6 @@ import useSocketIO from './composables/Socket.io';
 import { Cell } from './models/Cell';
 import { data } from './data';
 const { socket } = useSocketIO();
-
-const wonPlayer = ref('');
 
 const game = ref<Game | null>(null);
 const name = ref('');
@@ -56,6 +54,12 @@ function showErrorMessage(message: string) {
   alert(message);
 }
 
+onMounted(() => {
+  if (!code) {
+    window.location.href = `/${(Math.random() * 100000).toFixed(0)}`;
+  }
+})
+
 </script>
 
 <template>
@@ -68,7 +72,7 @@ function showErrorMessage(message: string) {
         >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting...' }}</template>
       </div>
       <div
-        :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${wonPlayer ? 'pointer-events-none bg-transparent/50' : ''}`"
+        :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${game.winner ? 'pointer-events-none bg-transparent/50' : ''}`"
       >
         <Board
           v-for="board of game.boards"
@@ -81,7 +85,12 @@ function showErrorMessage(message: string) {
     </div>
     <div v-else>
       <form @submit.prevent="onSubmit">
-        <input type="text" v-model="name" class="rounded-l p-2" />
+        <input
+          type="text"
+          v-model="name"
+          class="rounded-l p-2"
+          placeholder="Enter your name"
+        />
         <button
           type="submit"
           class="bg-blue-500 font-bold px-4 py-2 rounded-r text-white"
