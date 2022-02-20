@@ -50,7 +50,6 @@ function onSubmit() {
       game.value = null;
     });
   });
-
 }
 
 function showErrorMessage(message: string) {
