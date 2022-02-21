@@ -89,7 +89,7 @@ onMounted(() => {
   <div class="h-screen w-screen bg-zinc-700 grid place-items-center">
     <div v-if="clickedPlay && game">
       <h1
-        class="text-center mb-8 text-neutral-100 font-bold text-3xl font-slab"
+        class="text-center mb-8 text-neutral-100 font-bold text-5xl font-slab"
       >Ultimate Tic Tac Toe</h1>
       <div class="text-white font-bold text-center text-4xl mb-4">
         <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
