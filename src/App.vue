@@ -6,6 +6,7 @@ import { Board as BoardModel } from './models/Board';
 import useSocketIO from './composables/Socket.io';
 import { Cell } from './models/Cell';
 import { data } from './data';
+import InstructionsDialog from './components/InstructionsDialog.vue';
 const { socket } = useSocketIO();
 
 const game = ref<Game | null>(null);
@@ -96,6 +97,10 @@ function onClickPlayAgain() {
     game.value = new Game(game.value.currentPlayer);
   }
 }
+const showInstructionsDialog = ref(false);
+function onClickShowInstructions() {
+  showInstructionsDialog.value = true;
+}
 
 watch(() => game.value?.activePlayer, () => {
   if (game.value?.activePlayer === game.value?.currentPlayer && !windowActive.value) {
@@ -106,7 +111,11 @@ watch(() => game.value?.activePlayer, () => {
 </script>
 
 <template>
-  <div class="h-screen w-screen bg-zinc-700 flex flex-col">
+  <div class="relative h-screen w-screen bg-zinc-700 flex flex-col">
+    <InstructionsDialog 
+      :show="showInstructionsDialog"
+      @close="showInstructionsDialog = false"	
+    />
     <div class="grid place-items-center flex-grow p-2">
       <div>
         <h1
@@ -147,6 +156,10 @@ watch(() => game.value?.activePlayer, () => {
             <h2
               class="text-white text-center text-xl font-bold"
             >{{ `You are ${game.currentPlayer}` }}</h2>
+            <button
+              class="italic underline text-white"
+              @click="onClickShowInstructions"
+            >How to play Ultimate Tic Tac Toe?</button>
             <div
               v-if="game.currentPlayer === 'X'"
               class="text-center flex flex-col md:block"
@@ -155,13 +168,13 @@ watch(() => game.value?.activePlayer, () => {
                 class="text-white text-center text-lg mb-4"
               >Invite a friend to play</h2>
               <button
-                class="bg-zinc-500 font-bold px-4 py-2 rounded w-full text-white hover:bg-zinc-600 active:bg-zinc-700"
+                class="border border-zinc-600 font-bold px-4 py-2 rounded w-full text-white hover:bg-zinc-600 active:bg-zinc-700"
                 @click="onClickCopyButton"
               >{{ copied ? 'Copied!' : 'Copy link' }}</button>
             </div>
             <button
               @click="onClickPlayButton"
-              class="block bg-zinc-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-zinc-600 active:bg-zinc-700"
+              class="block bg-zinc-500 font-semibold px-4 py-4 rounded text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-zinc-600 active:bg-zinc-700"
               :disabled="!playerConnected && game.currentPlayer === 'X'"
             >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
           </div>
