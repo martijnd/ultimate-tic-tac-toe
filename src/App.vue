@@ -57,7 +57,7 @@ onMounted(() => {
 
   socket.on('accepted', (player) => {
 
-    game.value = new Game(player);
+    game.value = new Game(player, data);
 
     socket.on('place-mark', ({ code: cCode, boardIndex, cellIndex, player }) => {
       if (game.value && player !== game.value?.currentPlayer && code === cCode) {

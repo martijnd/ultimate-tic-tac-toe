@@ -1,5 +1,6 @@
 import { Board } from './Board';
 import { Cell } from './Cell';
+import confetti from 'canvas-confetti';
 export class Game {
   boards: Board[];
   currentPlayer: 'X' | 'O';
@@ -54,10 +55,25 @@ export class Game {
     const Oboards = Object.entries(this.boards).filter(([_, cell]) => cell.winner === 'O').map(([key]) => parseInt(key));
 
     if (Game.WINNING_MOVES.some(move => Game.isSame(move, Xboards))) {
+      if (this.currentPlayer === 'X') {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }
+
       return 'X';
     }
 
     if (Game.WINNING_MOVES.some(move => Game.isSame(move, Oboards))) {
+      if (this.currentPlayer === 'O') {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }
       return 'O';
     }
 
