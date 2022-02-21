@@ -114,7 +114,7 @@ onMounted(() => {
       </div>
       <div v-else-if="game">
         <div
-          class="p-8 bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
+          class="p-4 sm:p-8 bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
         >
           <h2
             class="text-white text-center text-xl font-bold"
@@ -129,7 +129,7 @@ onMounted(() => {
               :value="currentUrl"
             />
             <button
-              class="bg-slate-500 font-bold px-4 py-2 rounded sm:rounded-l-none sm:rounded-r text-white min-w-[100px]"
+              class="bg-slate-500 font-bold px-4 py-2 rounded sm:rounded-l-none sm:rounded-r text-white"
               @click="onClickCopyButton"
             >{{ copied ? 'Copied!' : 'Copy' }}</button>
           </div>
