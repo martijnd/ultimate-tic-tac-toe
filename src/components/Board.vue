@@ -16,25 +16,16 @@ const props = defineProps({
 
 const emit = defineEmits(['marked']);
 
-const winnerClass = computed(() => {
-  if (props.data.winner === 'X') {
-    return 'bg-blue-400/50';
-  }
 
-  if (props.data.winner === 'O') {
-    return 'bg-red-400/50';
-  }
-
-  return '';
-});
 
 </script>
 
 <template>
-  <div :class="`max-w-xl grid grid-cols-3 grid-rows-3 ${winnerClass}`">
+  <div class="max-w-xl grid grid-cols-3 grid-rows-3">
     <Cell
       v-for="cell in data.cells"
       :active="cell.active && active"
+      :winner="data.winner"
       @click="emit('marked', cell)"
     >{{ cell.mark ?? '' }}</Cell>
   </div>

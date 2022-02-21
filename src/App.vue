@@ -80,10 +80,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-screen w-screen bg-slate-900 grid place-items-center">
+  <div class="h-screen w-screen bg-zinc-700 grid place-items-center">
     <div v-if="clickedPlay && game">
       <h1
-        class="text-center mb-8 text-white font-bold text-3xl"
+        class="text-center mb-8 text-neutral-100 font-bold text-3xl font-slab"
       >Ultimate Tic Tac Toe</h1>
       <div class="text-white font-bold text-center text-4xl mb-4">
         <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
@@ -105,7 +105,7 @@ onMounted(() => {
     </div>
     <div v-else-if="game">
       <h1
-        class="text-center mb-8 text-white font-bold text-3xl"
+        class="text-center mb-8 text-neutral-100 font-bold text-3xl font-slab"
       >Ultimate Tic Tac Toe</h1>
       <div
         class="p-8 min-w-[400px] bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
