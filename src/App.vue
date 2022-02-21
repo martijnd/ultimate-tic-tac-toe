@@ -85,7 +85,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-screen w-screen bg-zinc-700 grid place-items-center">
+  <div class="h-screen w-screen bg-zinc-700 grid place-items-center p-2">
     <div>
       <h1
         class="text-center mb-8 text-neutral-100 font-bold text-3xl sm:text-4xl md:text-5xl font-slab"
@@ -114,7 +114,7 @@ onMounted(() => {
       </div>
       <div v-else-if="game">
         <div
-          class="p-4 sm:p-8 bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
+          class="p-4 sm:p-8 bg-zinc-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
         >
           <h2
             class="text-white text-center text-xl font-bold"
@@ -123,19 +123,14 @@ onMounted(() => {
             <h2
               class="text-white font-bold text-center text-lg mb-4"
             >Invite a friend to play</h2>
-            <input
-              class="px-4 py-2 rounded sm:rounded-l sm:rounded-r-none bg-slate-50"
-              type="text"
-              :value="currentUrl"
-            />
             <button
-              class="bg-slate-500 font-bold px-4 py-2 rounded sm:rounded-l-none sm:rounded-r text-white"
+              class="bg-zinc-500 font-bold px-4 py-2 rounded sm:rounded-l-none sm:rounded-r text-white"
               @click="onClickCopyButton"
             >{{ copied ? 'Copied!' : 'Copy' }}</button>
           </div>
           <button
             @click="onClickPlayButton"
-            class="block bg-slate-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
+            class="block bg-zinc-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
             :disabled="!playerConnected && game.currentPlayer === 'X'"
           >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
         </div>
