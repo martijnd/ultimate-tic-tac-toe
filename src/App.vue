@@ -11,7 +11,6 @@ const { socket } = useSocketIO();
 const game = ref<Game | null>(null);
 const code = window.location.pathname.split('/')[1];
 const currentUrl = ref('');
-const moveCount = ref(0);
 
 function onMarked(board: BoardModel, cell: Cell) {
   // If you're not the active player
@@ -87,60 +86,59 @@ onMounted(() => {
 
 <template>
   <div class="h-screen w-screen bg-zinc-700 grid place-items-center">
-    <div v-if="clickedPlay && game">
+    <div>
       <h1
-        class="text-center mb-8 text-neutral-100 font-bold text-5xl font-slab"
+        class="text-center mb-8 text-neutral-100 font-bold text-3xl sm:text-4xl md:text-5xl font-slab"
       >Ultimate Tic Tac Toe</h1>
-      <div class="text-white font-bold text-center text-4xl mb-4">
-        <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
-      </div>
-      <div
-        :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${game.winner ? 'pointer-events-none bg-transparent/50' : ''}`"
-      >
-        <Board
-          v-for="board of game.boards"
-          :data="board"
-          :active="game.availableBoards.map(board => board.index).includes(board.index)"
-          :available="game.availableBoards.includes(board)"
-          @marked="(cell) => onMarked(board, cell)"
-        ></Board>
-      </div>
-      <div class="flex justify-between text-white mt-2">
-        <div>Move {{ game.moveCount }}</div>
-        <div
-          :class="`font-bold ${game.activePlayer === game.currentPlayer ? 'text-green-300': 'text-indigo-300'}`"
-        >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting...' }}</div>
-      </div>
-    </div>
-    <div v-else-if="game">
-      <h1
-        class="text-center mb-8 text-neutral-100 font-bold text-3xl font-slab"
-      >Ultimate Tic Tac Toe</h1>
-      <div
-        class="p-8 bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
-      >
-        <h2
-          class="text-white text-center text-xl font-bold"
-        >{{ `You are ${game.currentPlayer}` }}</h2>
-        <div v-if="game.currentPlayer === 'X'" class="text-center flex flex-col md:block">
-          <h2
-            class="text-white font-bold text-center text-lg mb-4"
-          >Invite a friend to play</h2>
-          <input
-            class="px-4 py-2 rounded sm:rounded-l sm:rounded-r-none bg-slate-50"
-            type="text"
-            :value="currentUrl"
-          />
-          <button
-            class="bg-slate-500 font-bold px-4 py-2 rounded sm:rounded-l-none sm:rounded-r text-white min-w-[100px]"
-            @click="onClickCopyButton"
-          >{{ copied ? 'Copied!' : 'Copy' }}</button>
+      <div v-if="clickedPlay && game">
+        <div class="text-white font-bold text-center text-4xl mb-4">
+          <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
         </div>
-        <button
-          @click="onClickPlayButton"
-          class="block bg-slate-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
-          :disabled="!playerConnected && game.currentPlayer === 'X'"
-        >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
+        <div
+          :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${game.winner ? 'pointer-events-none bg-transparent/50' : ''}`"
+        >
+          <Board
+            v-for="board of game.boards"
+            :data="board"
+            :active="game.availableBoards.map(board => board.index).includes(board.index)"
+            :available="game.availableBoards.includes(board)"
+            @marked="(cell) => onMarked(board, cell)"
+          ></Board>
+        </div>
+        <div class="flex justify-between text-white mt-2">
+          <div>Move {{ game.moveCount }}</div>
+          <div
+            :class="`font-bold ${game.activePlayer === game.currentPlayer ? 'text-green-300': 'text-indigo-300'}`"
+          >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting for opponent...' }}</div>
+        </div>
+      </div>
+      <div v-else-if="game">
+        <div
+          class="p-8 bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
+        >
+          <h2
+            class="text-white text-center text-xl font-bold"
+          >{{ `You are ${game.currentPlayer}` }}</h2>
+          <div v-if="game.currentPlayer === 'X'" class="text-center flex flex-col md:block">
+            <h2
+              class="text-white font-bold text-center text-lg mb-4"
+            >Invite a friend to play</h2>
+            <input
+              class="px-4 py-2 rounded sm:rounded-l sm:rounded-r-none bg-slate-50"
+              type="text"
+              :value="currentUrl"
+            />
+            <button
+              class="bg-slate-500 font-bold px-4 py-2 rounded sm:rounded-l-none sm:rounded-r text-white min-w-[100px]"
+              @click="onClickCopyButton"
+            >{{ copied ? 'Copied!' : 'Copy' }}</button>
+          </div>
+          <button
+            @click="onClickPlayButton"
+            class="block bg-slate-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
+            :disabled="!playerConnected && game.currentPlayer === 'X'"
+          >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
+        </div>
       </div>
     </div>
   </div>

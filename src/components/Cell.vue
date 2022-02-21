@@ -38,7 +38,7 @@ const winnerClass = computed(() => {
 
 <template>
   <div
-    :class="`p-2 md:p-4 border grid place-items-center font-bold text-sm md:text-4xl text-white h-8 w-8 md:h-16 md:w-16 ${activeClass} ${winnerClass}`"
+    :class="`border grid place-items-center font-bold text-base sm:text-2xl md:text-4xl text-white h-8 w-8 sm:h-12 sm:w-12 md:h-16 md:w-16 ${activeClass} ${winnerClass}`"
   >
     <slot />
   </div>
