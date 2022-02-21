@@ -117,28 +117,28 @@ onMounted(() => {
         class="text-center mb-8 text-neutral-100 font-bold text-3xl font-slab"
       >Ultimate Tic Tac Toe</h1>
       <div
-        class="p-8 min-w-[400px] bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
+        class="p-8 bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
       >
         <h2
           class="text-white text-center text-xl font-bold"
         >{{ `You are ${game.currentPlayer}` }}</h2>
-        <div v-if="game.currentPlayer === 'X'" class="text-center">
+        <div v-if="game.currentPlayer === 'X'" class="text-center flex flex-col md:block">
           <h2
             class="text-white font-bold text-center text-lg mb-4"
           >Invite a friend to play</h2>
           <input
-            class="px-4 py-2 rounded-l bg-slate-50"
+            class="px-4 py-2 rounded sm:rounded-l sm:rounded-r-none bg-slate-50"
             type="text"
             :value="currentUrl"
           />
           <button
-            class="bg-slate-500 font-bold px-4 py-2 rounded-r text-white min-w-[100px]"
+            class="bg-slate-500 font-bold px-4 py-2 rounded sm:rounded-l-none sm:rounded-r text-white min-w-[100px]"
             @click="onClickCopyButton"
           >{{ copied ? 'Copied!' : 'Copy' }}</button>
         </div>
         <button
           @click="onClickPlayButton"
-          class="block bg-slate-500 font-bold px-4 py-2 rounded text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
+          class="block bg-slate-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
           :disabled="!playerConnected && game.currentPlayer === 'X'"
         >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
       </div>
