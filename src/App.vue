@@ -155,13 +155,13 @@ watch(() => game.value?.activePlayer, () => {
                 class="text-white text-center text-lg mb-4"
               >Invite a friend to play</h2>
               <button
-                class="bg-zinc-500 font-bold px-4 py-2 rounded w-full text-white"
+                class="bg-zinc-500 font-bold px-4 py-2 rounded w-full text-white hover:bg-zinc-600 active:bg-zinc-700"
                 @click="onClickCopyButton"
               >{{ copied ? 'Copied!' : 'Copy link' }}</button>
             </div>
             <button
               @click="onClickPlayButton"
-              class="block bg-zinc-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+              class="block bg-zinc-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-zinc-600 active:bg-zinc-700"
               :disabled="!playerConnected && game.currentPlayer === 'X'"
             >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
           </div>
