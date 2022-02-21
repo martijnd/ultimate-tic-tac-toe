@@ -110,7 +110,7 @@ onMounted(() => {
             <div>Move {{ game.moveCount }}</div>
             <div
               :class="`font-bold ${game.activePlayer === game.currentPlayer ? 'text-green-300' : 'text-indigo-300'}`"
-            >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting for opponent...' }}</div>
+            >{{ game.activePlayer === game.currentPlayer ? `Your turn — you are ${game.currentPlayer}` : 'Waiting for opponent...' }}</div>
           </div>
         </div>
         <div v-else-if="game">
