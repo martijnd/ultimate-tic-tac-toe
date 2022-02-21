@@ -28,6 +28,7 @@ function onMarked(board: BoardModel, cell: Cell) {
 
 const clickedPlay = ref(false);
 const copied = ref(false);
+const playerConnected = ref(false);
 
 function onClickPlayButton() {
   clickedPlay.value = true;
@@ -72,6 +73,10 @@ onMounted(() => {
       showErrorMessage('The opponent has disconnected');
       game.value = null;
       window.location.href = '/'
+    });
+
+    socket.on('player-accepted', () => {
+      playerConnected.value = true;
     });
   });
 
@@ -129,8 +134,9 @@ onMounted(() => {
         </div>
         <button
           @click="onClickPlayButton"
-          class="block bg-slate-500 font-bold px-4 py-2 rounded text-white"
-        >Play!</button>
+          class="block bg-slate-500 font-bold px-4 py-2 rounded text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
+          :disabled="!playerConnected && game.currentPlayer === 'X'"
+        >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
       </div>
     </div>
   </div>
