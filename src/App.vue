@@ -9,8 +9,8 @@ import { data } from './data';
 const { socket } = useSocketIO();
 
 const game = ref<Game | null>(null);
-const name = ref('');
 const code = window.location.pathname.split('/')[1];
+const currentUrl = ref('');
 
 function onMarked(board: BoardModel, cell: Cell) {
   // If you're not the active player
@@ -26,8 +26,33 @@ function onMarked(board: BoardModel, cell: Cell) {
   });
 }
 
-function onSubmit() {
-  socket.emit('join', { code, name: name.value });
+const clickedPlay = ref(false);
+const copied = ref(false);
+
+function onClickPlayButton() {
+  clickedPlay.value = true;
+}
+
+async function onClickCopyButton() {
+  await navigator.clipboard.writeText(currentUrl.value);
+  copied.value = true;
+
+  setTimeout(() => {
+    copied.value = false;
+  }, 3000);
+}
+
+function showErrorMessage(message: string) {
+  alert(message);
+}
+
+onMounted(() => {
+  if (!code) {
+    window.location.href = `/${(Math.random() * 100000).toFixed(0)}`;
+    return;
+  }
+
+  socket.emit('join', { code });
 
   socket.on('accepted', (player) => {
 
@@ -46,25 +71,20 @@ function onSubmit() {
     socket.on('disconnected', () => {
       showErrorMessage('The opponent has disconnected');
       game.value = null;
+      window.location.href = '/'
     });
   });
-}
 
-function showErrorMessage(message: string) {
-  alert(message);
-}
-
-onMounted(() => {
-  if (!code) {
-    window.location.href = `/${(Math.random() * 100000).toFixed(0)}`;
-  }
+  currentUrl.value = document.location.href;
 })
-
 </script>
 
 <template>
   <div class="h-screen w-screen bg-slate-900 grid place-items-center">
-    <div v-if="game">
+    <div v-if="clickedPlay && game">
+      <h1
+        class="text-center mb-8 text-white font-bold text-3xl"
+      >Ultimate Tic Tac Toe</h1>
       <div class="text-white font-bold text-center text-4xl mb-4">
         <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
         <template
@@ -83,19 +103,35 @@ onMounted(() => {
         ></Board>
       </div>
     </div>
-    <div v-else>
-      <form @submit.prevent="onSubmit">
-        <input
-          type="text"
-          v-model="name"
-          class="rounded-l p-2"
-          placeholder="Enter your name"
-        />
+    <div v-else-if="game">
+      <h1
+        class="text-center mb-8 text-white font-bold text-3xl"
+      >Ultimate Tic Tac Toe</h1>
+      <div
+        class="p-8 min-w-[400px] bg-slate-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
+      >
+        <h2
+          class="text-white text-center text-xl font-bold"
+        >{{ `You are ${game.currentPlayer}` }}</h2>
+        <div v-if="game.currentPlayer === 'X'" class="text-center">
+          <h2
+            class="text-white font-bold text-center text-lg mb-4"
+          >Invite a friend to play</h2>
+          <input
+            class="px-4 py-2 rounded-l bg-slate-50"
+            type="text"
+            :value="currentUrl"
+          />
+          <button
+            class="bg-slate-500 font-bold px-4 py-2 rounded-r text-white min-w-[100px]"
+            @click="onClickCopyButton"
+          >{{ copied ? 'Copied!' : 'Copy' }}</button>
+        </div>
         <button
-          type="submit"
-          class="bg-blue-500 font-bold px-4 py-2 rounded-r text-white"
-        >Enter</button>
-      </form>
+          @click="onClickPlayButton"
+          class="block bg-slate-500 font-bold px-4 py-2 rounded text-white"
+        >Play!</button>
+      </div>
     </div>
   </div>
 </template>
