@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import Board from './components/Board.vue';
 import { Game } from './models/Game';
 import { Board as BoardModel } from './models/Board';
@@ -11,41 +11,9 @@ const { socket } = useSocketIO();
 const game = ref<Game | null>(null);
 const code = window.location.pathname.split('/')[1];
 const currentUrl = ref('');
-
-function onMarked(board: BoardModel, cell: Cell) {
-  // If you're not the active player
-  if (game.value?.activePlayer !== game.value?.currentPlayer) {
-    // TODO: Show an error message
-    return;
-  }
-  game.value?.placeMark(board, cell, game.value?.currentPlayer);
-  socket.emit('place-mark', {
-    code, boardIndex: board.index,
-    cellIndex: cell.index,
-    player: game.value?.currentPlayer
-  });
-}
-
 const clickedPlay = ref(false);
 const copied = ref(false);
 const playerConnected = ref(false);
-
-function onClickPlayButton() {
-  clickedPlay.value = true;
-}
-
-async function onClickCopyButton() {
-  await navigator.clipboard.writeText(currentUrl.value);
-  copied.value = true;
-
-  setTimeout(() => {
-    copied.value = false;
-  }, 3000);
-}
-
-function showErrorMessage(message: string) {
-  alert(message);
-}
 
 onMounted(() => {
   if (!code) {
@@ -80,8 +48,56 @@ onMounted(() => {
     });
   });
 
+  document.addEventListener('visibilitychange', () => {
+    windowActive.value = !document.hidden;
+    if (!document.hidden) {
+      document.title = 'Ultimate Tic Tac Toe';
+    }
+    });
+
   currentUrl.value = document.location.href;
-})
+});
+
+const windowActive = ref(true);
+
+function onMarked(board: BoardModel, cell: Cell) {
+  // If you're not the active player
+  if (game.value?.activePlayer !== game.value?.currentPlayer) {
+    // TODO: Show an error message
+    return;
+  }
+  game.value?.placeMark(board, cell, game.value?.currentPlayer);
+  socket.emit('place-mark', {
+    code, boardIndex: board.index,
+    cellIndex: cell.index,
+    player: game.value?.currentPlayer
+  });
+}
+
+function onClickPlayButton() {
+  clickedPlay.value = true;
+}
+
+async function onClickCopyButton() {
+  await navigator.clipboard.writeText(currentUrl.value);
+  copied.value = true;
+
+  setTimeout(() => {
+    copied.value = false;
+  }, 3000);
+}
+
+function showErrorMessage(message: string) {
+  alert(message);
+}
+
+watch(() => game.value?.activePlayer, () => {
+  console.log('Active player changed', game.value?.activePlayer, game.value?.currentPlayer, { windowActive: windowActive.value });
+  if (game.value?.activePlayer === game.value?.currentPlayer && !windowActive.value) {
+    document.title = "It's your turn!";
+  }
+});
+
 </script>
 
 <template>
@@ -145,7 +161,11 @@ onMounted(() => {
       class="p-2 text-center text-zinc-500 font-slab border-t-2 border-zinc-600"
     >
       Made by
-      <a href="https://martijndorsman.nl" target="_blank" class="underline">Martijn Dorsman</a> 
+      <a
+        href="https://martijndorsman.nl"
+        target="_blank"
+        class="underline"
+      >Martijn Dorsman</a>
     </footer>
   </div>
 </template>
