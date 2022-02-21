@@ -25,7 +25,7 @@ onMounted(() => {
 
   socket.on('accepted', (player) => {
 
-    game.value = new Game(player);
+    game.value = new Game(player, data);
 
     socket.on('place-mark', ({ code: cCode, boardIndex, cellIndex, player }) => {
       if (game.value && player !== game.value?.currentPlayer && code === cCode) {
@@ -53,7 +53,7 @@ onMounted(() => {
     if (!document.hidden) {
       document.title = 'Ultimate Tic Tac Toe';
     }
-    });
+  });
 
   currentUrl.value = document.location.href;
 });
@@ -91,8 +91,13 @@ function showErrorMessage(message: string) {
   alert(message);
 }
 
+function onClickPlayAgain() {
+  if (game.value) {
+    game.value = new Game(game.value.currentPlayer);
+  }
+}
+
 watch(() => game.value?.activePlayer, () => {
-  console.log('Active player changed', game.value?.activePlayer, game.value?.currentPlayer, { windowActive: windowActive.value });
   if (game.value?.activePlayer === game.value?.currentPlayer && !windowActive.value) {
     document.title = "It's your turn!";
   }
@@ -109,7 +114,13 @@ watch(() => game.value?.activePlayer, () => {
         >Ultimate Tic Tac Toe</h1>
         <div v-if="clickedPlay && game">
           <div class="text-white font-bold text-center text-4xl mb-4">
-            <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
+            <template v-if="game.winner">
+              {{ `Player ${game.winner} won!` }}
+              <button
+                @click="onClickPlayAgain"
+                class="underline"
+              >Play again</button>
+            </template>
           </div>
           <div
             :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${game.winner ? 'pointer-events-none bg-transparent/50' : ''}`"
