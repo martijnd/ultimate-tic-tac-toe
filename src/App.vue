@@ -11,6 +11,7 @@ const { socket } = useSocketIO();
 const game = ref<Game | null>(null);
 const code = window.location.pathname.split('/')[1];
 const currentUrl = ref('');
+const moveCount = ref(0);
 
 function onMarked(board: BoardModel, cell: Cell) {
   // If you're not the active player
@@ -57,7 +58,7 @@ onMounted(() => {
 
   socket.on('accepted', (player) => {
 
-    game.value = new Game(player, data);
+    game.value = new Game(player);
 
     socket.on('place-mark', ({ code: cCode, boardIndex, cellIndex, player }) => {
       if (game.value && player !== game.value?.currentPlayer && code === cCode) {
@@ -92,9 +93,6 @@ onMounted(() => {
       >Ultimate Tic Tac Toe</h1>
       <div class="text-white font-bold text-center text-4xl mb-4">
         <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
-        <template
-          v-else
-        >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting...' }}</template>
       </div>
       <div
         :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${game.winner ? 'pointer-events-none bg-transparent/50' : ''}`"
@@ -106,6 +104,12 @@ onMounted(() => {
           :available="game.availableBoards.includes(board)"
           @marked="(cell) => onMarked(board, cell)"
         ></Board>
+      </div>
+      <div class="flex justify-between text-white mt-2">
+        <div>Move {{ game.moveCount }}</div>
+        <div
+          :class="`font-bold ${game.activePlayer === game.currentPlayer ? 'text-green-300': 'text-indigo-300'}`"
+        >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting...' }}</div>
       </div>
     </div>
     <div v-else-if="game">

@@ -6,6 +6,7 @@ export class Game {
   currentPlayer: 'X' | 'O';
   activePlayer: 'X' | 'O' = 'X';
   lastBoardIndex?: number;
+  moveCount = 0;
 
   constructor(currentPlayer: 'X' | 'O', boards?: Board[], activePlayer?: 'X' | 'O', lastBoardIndex?: number) {
     this.currentPlayer = currentPlayer;
@@ -28,6 +29,7 @@ export class Game {
     this.lastBoardIndex = cell.index;
     cell.mark = player;
     this.activePlayer = this.activePlayer === 'X' ? 'O' : 'X';
+    this.moveCount++;
   }
 
   get wonBoards() {
