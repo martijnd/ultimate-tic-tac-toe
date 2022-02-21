@@ -85,57 +85,68 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-screen w-screen bg-zinc-700 grid place-items-center p-2">
-    <div>
-      <h1
-        class="text-center mb-8 text-neutral-100 font-bold text-3xl sm:text-4xl md:text-5xl font-slab"
-      >Ultimate Tic Tac Toe</h1>
-      <div v-if="clickedPlay && game">
-        <div class="text-white font-bold text-center text-4xl mb-4">
-          <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
-        </div>
-        <div
-          :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${game.winner ? 'pointer-events-none bg-transparent/50' : ''}`"
-        >
-          <Board
-            v-for="board of game.boards"
-            :data="board"
-            :active="game.availableBoards.map(board => board.index).includes(board.index)"
-            :available="game.availableBoards.includes(board)"
-            @marked="(cell) => onMarked(board, cell)"
-          ></Board>
-        </div>
-        <div class="flex justify-between text-white mt-2">
-          <div>Move {{ game.moveCount }}</div>
-          <div
-            :class="`font-bold ${game.activePlayer === game.currentPlayer ? 'text-green-300': 'text-indigo-300'}`"
-          >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting for opponent...' }}</div>
-        </div>
-      </div>
-      <div v-else-if="game">
-        <div
-          class="p-4 sm:p-8 bg-zinc-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
-        >
-          <h2
-            class="text-white text-center text-xl font-bold"
-          >{{ `You are ${game.currentPlayer}` }}</h2>
-          <div v-if="game.currentPlayer === 'X'" class="text-center flex flex-col md:block">
-            <h2
-              class="text-white font-bold text-center text-lg mb-4"
-            >Invite a friend to play</h2>
-            <button
-              class="bg-zinc-500 font-bold px-4 py-2 rounded sm:rounded-l-none sm:rounded-r text-white"
-              @click="onClickCopyButton"
-            >{{ copied ? 'Copied!' : 'Copy' }}</button>
+  <div class="h-screen w-screen bg-zinc-700 flex flex-col">
+    <div class="grid place-items-center flex-grow p-2">
+      <div>
+        <h1
+          class="text-center mb-8 text-neutral-100 font-bold text-3xl sm:text-4xl md:text-5xl font-slab"
+        >Ultimate Tic Tac Toe</h1>
+        <div v-if="clickedPlay && game">
+          <div class="text-white font-bold text-center text-4xl mb-4">
+            <template v-if="game.winner">{{ `Player ${game.winner} won!` }}</template>
           </div>
-          <button
-            @click="onClickPlayButton"
-            class="block bg-zinc-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
-            :disabled="!playerConnected && game.currentPlayer === 'X'"
-          >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
+          <div
+            :class="`grid grid-rows-3 grid-cols-3 select-none gap-2 ${game.winner ? 'pointer-events-none bg-transparent/50' : ''}`"
+          >
+            <Board
+              v-for="board of game.boards"
+              :data="board"
+              :active="game.availableBoards.map(board => board.index).includes(board.index)"
+              :available="game.availableBoards.includes(board)"
+              @marked="(cell) => onMarked(board, cell)"
+            ></Board>
+          </div>
+          <div class="flex justify-between text-white mt-2">
+            <div>Move {{ game.moveCount }}</div>
+            <div
+              :class="`font-bold ${game.activePlayer === game.currentPlayer ? 'text-green-300' : 'text-indigo-300'}`"
+            >{{ game.activePlayer === game.currentPlayer ? 'Your turn' : 'Waiting for opponent...' }}</div>
+          </div>
+        </div>
+        <div v-else-if="game">
+          <div
+            class="p-4 sm:p-8 bg-zinc-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
+          >
+            <h2
+              class="text-white text-center text-xl font-bold"
+            >{{ `You are ${game.currentPlayer}` }}</h2>
+            <div
+              v-if="game.currentPlayer === 'X'"
+              class="text-center flex flex-col md:block"
+            >
+              <h2
+                class="text-white text-center text-lg mb-4"
+              >Invite a friend to play</h2>
+              <button
+                class="bg-zinc-500 font-bold px-4 py-2 rounded w-full text-white"
+                @click="onClickCopyButton"
+              >{{ copied ? 'Copied!' : 'Copy link' }}</button>
+            </div>
+            <button
+              @click="onClickPlayButton"
+              class="block bg-zinc-500 font-semibold px-4 py-2 rounded text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+              :disabled="!playerConnected && game.currentPlayer === 'X'"
+            >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
+          </div>
         </div>
       </div>
     </div>
+    <footer
+      class="p-2 text-center text-zinc-500 font-slab border-t-2 border-zinc-600"
+    >
+      Made by
+      <a href="https://martijndorsman.nl" target="_blank" class="underline">Martijn Dorsman</a> 
+    </footer>
   </div>
 </template>
 
