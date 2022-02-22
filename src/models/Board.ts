@@ -1,6 +1,6 @@
 import { Cell } from "./Cell";
 import { Game } from "./Game";
-import { Player } from "./Player";
+import { Player } from "../enums/Player";
 
 export class Board {
   index: number;
@@ -24,15 +24,20 @@ export class Board {
     return true;
   }
 
-  get winner() {
-    const Xcells = Object.entries(this.cells).filter(([_, cell]) => cell.mark === Player.X).map(([key]) => parseInt(key));
-    const Ocells = Object.entries(this.cells).filter(([_, cell]) => cell.mark === Player.O).map(([key]) => parseInt(key));
+  get XCells() {
+    return this.getWonCells(Player.X);
+  }
 
-    if (Game.WINNING_MOVES.some(move => Game.isSame(move, Xcells))) {
+  get OCells() {
+    return this.getWonCells(Player.O);
+  }
+
+  get winner() {
+    if (this.hasWon(this.XCells)) {
       return Player.X;
     }
 
-    if (Game.WINNING_MOVES.some(move => Game.isSame(move, Ocells))) {
+    if (this.hasWon(this.OCells)) {
       return Player.O;
     }
 
@@ -42,4 +47,12 @@ export class Board {
   get filled () {
     return this.cells.every(cell => cell.filled);
   }
+
+  getWonCells(player: Player) {
+    return Game.extractSections(this.cells, player);
+  }
+
+  hasWon(boards: number[]) {
+    return Game.WINNING_MOVES.some(move => Game.isSame(move, boards));
+  } 
 }

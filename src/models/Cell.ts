@@ -1,4 +1,4 @@
-import { Player } from "./Player";
+import { Player } from "../enums/Player";
 
 export class Cell {
   index: number;

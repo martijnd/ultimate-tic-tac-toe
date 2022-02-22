@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Player } from '../models/Player';
+import { Player } from '../enums/Player';
 
 const props = defineProps({
   active: {

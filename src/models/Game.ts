@@ -1,7 +1,8 @@
 import { Board } from './Board';
 import { Cell } from './Cell';
 import confetti from 'canvas-confetti';
-import { Player } from './Player';
+import { Player } from '../enums/Player';
+
 export class Game {
   boards: Board[];
   currentPlayer: Player;
@@ -60,6 +61,7 @@ export class Game {
   get Xboards() {
     return this.getWonBoards(Player.X);
   }
+
   get Oboards() {
     return this.getWonBoards(Player.O);
   }
@@ -77,9 +79,13 @@ export class Game {
   }
 
   getWonBoards(player: Player) {
-    return Object.entries(this.boards)
-      .filter(([_, cell]) => cell.winner === player)
-      .map(([key]) => parseInt(key));
+    return Game.extractSections(this.boards, player);
+  }
+
+  static extractSections(sections: Cell[] | Board[], player: Player) {
+    return Object.entries(sections)
+    .filter(([_, section]) => section.winner === player)
+    .map(([key]) => parseInt(key))
   }
 
   hasWon(player: Player, boards: number[]) {
