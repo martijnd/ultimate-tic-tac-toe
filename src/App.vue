@@ -179,6 +179,9 @@ watch(() => game.value?.activePlayer, () => {
             >{{ playerConnected || game.currentPlayer !== 'X' ? 'Play!' : 'Waiting for player...' }}</button>
           </div>
         </div>
+        <div v-else class="text-white text-center font-bold text-lg">
+          Gathering X's and O's...
+        </div>
       </div>
     </div>
     <footer
