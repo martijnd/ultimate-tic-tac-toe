@@ -1,8 +1,10 @@
+import { Player } from "./Player";
+
 export class Cell {
   index: number;
   mark?: string;
 
-  constructor(index: number, mark?: 'X' | 'O') {
+  constructor(index: number, mark?: Player) {
     this.index = index;
     this.mark = mark;
   }

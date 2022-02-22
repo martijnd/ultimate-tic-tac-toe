@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { Player } from '../models/Player';
 
 const props = defineProps({
   active: {
@@ -7,7 +8,7 @@ const props = defineProps({
     required: true
   },
   winner: {
-    type: String as () => 'X' | 'O' | null,
+    type: String as () => Player | null,
     default: null
   }
 })
@@ -24,11 +25,11 @@ return '';
 })
 
 const winnerClass = computed(() => {
-  if (props.winner === 'X') {
+  if (props.winner === Player.X) {
     return 'bg-indigo-300 border-indigo-700 text-indigo-700';
   }
 
-  if (props.winner === 'O') {
+  if (props.winner === Player.O) {
     return 'bg-red-300 border-red-700 text-red-700';
   }
 

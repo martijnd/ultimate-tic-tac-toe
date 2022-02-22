@@ -1,5 +1,6 @@
 import { Cell } from "./Cell";
 import { Game } from "./Game";
+import { Player } from "./Player";
 
 export class Board {
   index: number;
@@ -24,15 +25,15 @@ export class Board {
   }
 
   get winner() {
-    const Xcells = Object.entries(this.cells).filter(([_, cell]) => cell.mark === 'X').map(([key]) => parseInt(key));
-    const Ocells = Object.entries(this.cells).filter(([_, cell]) => cell.mark === 'O').map(([key]) => parseInt(key));
+    const Xcells = Object.entries(this.cells).filter(([_, cell]) => cell.mark === Player.X).map(([key]) => parseInt(key));
+    const Ocells = Object.entries(this.cells).filter(([_, cell]) => cell.mark === Player.O).map(([key]) => parseInt(key));
 
     if (Game.WINNING_MOVES.some(move => Game.isSame(move, Xcells))) {
-      return 'X';
+      return Player.X;
     }
 
     if (Game.WINNING_MOVES.some(move => Game.isSame(move, Ocells))) {
-      return 'O';
+      return Player.O;
     }
 
     return null;

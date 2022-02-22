@@ -1,34 +1,35 @@
 import { Board } from './Board';
 import { Cell } from './Cell';
 import confetti from 'canvas-confetti';
+import { Player } from './Player';
 export class Game {
   boards: Board[];
-  currentPlayer: 'X' | 'O';
-  activePlayer: 'X' | 'O' = 'X';
+  currentPlayer: Player;
+  activePlayer: Player = Player.X;
   lastBoardIndex?: number;
   moveCount = 0;
 
-  constructor(currentPlayer: 'X' | 'O', boards?: Board[], activePlayer?: 'X' | 'O', lastBoardIndex?: number) {
+  constructor(currentPlayer: Player, boards?: Board[], activePlayer?: Player, lastBoardIndex?: number) {
     this.currentPlayer = currentPlayer;
     this.boards = boards ?? new Array(9).fill([]).map((_, index) => new Board(index));
-    this.activePlayer = activePlayer ?? 'X';
+    this.activePlayer = activePlayer ?? Player.X;
     this.lastBoardIndex = lastBoardIndex;
   }
 
-  placeMark(board: Board, cell: Cell, player: 'X' | 'O') {
+  placeMark(board: Board, cell: Cell, player: Player) {
     // if the board is not the one that should be picked from
     if (!this.availableBoards.map(board => board.index).includes(board.index)) {
       return;
     }
-    
+
     // if the cell is already filled or if the board has already been won
     if (cell.filled || !board.active) {
       return;
     }
-    
+
     this.lastBoardIndex = cell.index;
     cell.mark = player;
-    this.activePlayer = this.activePlayer === 'X' ? 'O' : 'X';
+    this.activePlayer = this.activePlayer === Player.X ? Player.O : Player.X;
     this.moveCount++;
   }
 
@@ -36,12 +37,15 @@ export class Game {
     return this.boards.filter(board => board.winner);
   }
 
+  get filledBoards() {
+    return this.boards.filter(board => board.filled);
+  }
+
   get availableBoards() {
     if (this.lastBoardIndex !== undefined) {
-      // if the chosen cell index points to a won board OR
-      if (this.wonBoards.map(board => board.index).includes(this.lastBoardIndex)
-      // if the chosen cell index points to a filled board
-      || this.boards.find(board => board.filled)) {
+      const boardIsWon = this.wonBoards.find(board => board.index === this.lastBoardIndex);
+      const boardIsFilled = this.filledBoards.find(board => board.index === this.lastBoardIndex);
+      if (boardIsWon || boardIsFilled) {
         // display all the boards that are not won and not filled 
         return this.boards.filter(board => board.active);
       }
@@ -49,38 +53,50 @@ export class Game {
       // Otherwise, only activate the board that was chosen
       return this.boards.filter(board => board.index === this.lastBoardIndex);
     }
-    return this.boards.filter(board => board.index !== this.lastBoardIndex);
+
+    return this.boards;
   }
 
-  get winner () {
-    const Xboards = Object.entries(this.boards).filter(([_, cell]) => cell.winner === 'X').map(([key]) => parseInt(key));
-    const Oboards = Object.entries(this.boards).filter(([_, cell]) => cell.winner === 'O').map(([key]) => parseInt(key));
+  get Xboards() {
+    return this.getWonBoards(Player.X);
+  }
+  get Oboards() {
+    return this.getWonBoards(Player.O);
+  }
 
-    if (Game.WINNING_MOVES.some(move => Game.isSame(move, Xboards))) {
-      if (this.currentPlayer === 'X') {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      }
-
-      return 'X';
+  get winner() {
+    if (this.hasWon(Player.X, this.Xboards)) {
+      return Player.X;
     }
 
-    if (Game.WINNING_MOVES.some(move => Game.isSame(move, Oboards))) {
-      if (this.currentPlayer === 'O') {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      }
-      return 'O';
+    if (this.hasWon(Player.O, this.Oboards)) {
+      return Player.O;
     }
 
     return null;
   }
+
+  getWonBoards(player: Player) {
+    return Object.entries(this.boards)
+      .filter(([_, cell]) => cell.winner === player)
+      .map(([key]) => parseInt(key));
+  }
+
+  hasWon(player: Player, boards: number[]) {
+    if (Game.WINNING_MOVES.some(move => Game.isSame(move, boards))) {
+      if (this.currentPlayer === player) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }
+
+      return true;
+    }
+
+    return false;
+  } 
 
   static readonly WINNING_MOVES = [
     // horizontal

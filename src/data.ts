@@ -1,29 +1,30 @@
 import { Board } from "./models/Board"
 import { Cell } from "./models/Cell"
+import { Player } from "./models/Player"
 
 export const data = [
   new Board(0, [
     new Cell(0),
     new Cell(1),
-    new Cell(2, 'X'),
-    new Cell(3, 'O'),
-    new Cell(4, 'O'),
-    new Cell(5, 'O'),
-    new Cell(6, 'X'),
+    new Cell(2, Player.X),
+    new Cell(3, Player.O),
+    new Cell(4, Player.O),
+    new Cell(5, Player.O),
+    new Cell(6, Player.X),
     new Cell(7),
-    new Cell(8, 'X'),
+    new Cell(8, Player.X),
   ]
   ),
   new Board(1, [
     new Cell(0),
-    new Cell(1, 'X'),
+    new Cell(1, Player.X),
     new Cell(2),
-    new Cell(3, 'X'),
-    new Cell(4, 'X'),
-    new Cell(5, 'X'),
-    new Cell(6, 'O'),
-    new Cell(7, 'X'),
-    new Cell(8, 'O'),
+    new Cell(3, Player.X),
+    new Cell(4, Player.X),
+    new Cell(5, Player.X),
+    new Cell(6, Player.O),
+    new Cell(7, Player.X),
+    new Cell(8, Player.O),
   ]),
   new Board(2, [
     new Cell(0),
@@ -39,13 +40,13 @@ export const data = [
   new Board(3, [
     new Cell(0),
     new Cell(1),
-    new Cell(2, 'X'),
-    new Cell(3, 'O'),
-    new Cell(4, 'O'),
-    new Cell(5, 'O'),
-    new Cell(6, 'X'),
+    new Cell(2, Player.X),
+    new Cell(3, Player.O),
+    new Cell(4, Player.O),
+    new Cell(5, Player.O),
+    new Cell(6, Player.X),
     new Cell(7),
-    new Cell(8, 'X'),
+    new Cell(8, Player.X),
   ]),
   new Board(4, [
     new Cell(0),
@@ -72,13 +73,13 @@ export const data = [
   new Board(6, [
     new Cell(0),
     new Cell(1),
-    new Cell(2, 'X'),
-    new Cell(3, 'O'),
-    new Cell(4, 'O'),
+    new Cell(2, Player.X),
+    new Cell(3, Player.O),
+    new Cell(4, Player.O),
     new Cell(5),
-    new Cell(6, 'X'),
+    new Cell(6, Player.X),
     new Cell(7),
-    new Cell(8, 'X'),
+    new Cell(8, Player.X),
   ]),
   new Board(7, [
     new Cell(0),
