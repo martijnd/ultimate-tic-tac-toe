@@ -1,6 +1,6 @@
 import { Board } from "./models/Board"
 import { Cell } from "./models/Cell"
-import { Player } from "./models/Player"
+import { Player } from "./enums/Player"
 
 export const data = [
   new Board(0, [

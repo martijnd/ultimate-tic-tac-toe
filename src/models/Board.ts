@@ -49,7 +49,7 @@ export class Board {
   }
 
   getWonCells(player: Player) {
-    return Game.extractSections(this.cells, player);
+    return Game.extractSections(this.cells, player, 'mark');
   }
 
   hasWon(boards: number[]) {

@@ -79,12 +79,12 @@ export class Game {
   }
 
   getWonBoards(player: Player) {
-    return Game.extractSections(this.boards, player);
+    return Game.extractSections(this.boards, player, 'winner');
   }
 
-  static extractSections(sections: Cell[] | Board[], player: Player) {
+  static extractSections(sections: Cell[] | Board[], player: Player, attr: 'winner' | 'mark') {
     return Object.entries(sections)
-    .filter(([_, section]) => section.winner === player)
+    .filter(([_, section]) => section[attr] === player)
     .map(([key]) => parseInt(key))
   }
 
