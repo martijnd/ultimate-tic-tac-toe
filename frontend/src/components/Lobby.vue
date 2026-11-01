@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Game } from '../models/Game';
 import { Player } from '../enums/Player';
 import Mark from './Mark.vue';
+import { t } from '../i18n';
 
 const props = defineProps<{
   game: Game;
@@ -52,8 +53,8 @@ async function onClickCopy() {
 async function onClickShare() {
   try {
     await navigator.share({
-      title: 'Ultimate tic-tac-toe',
-      text: 'Play a game of ultimate tic-tac-toe with me',
+      title: t.value.lobby.shareTitle,
+      text: t.value.lobby.shareText,
       url: currentUrl.value,
     });
   } catch {
@@ -69,15 +70,15 @@ async function onClickShare() {
         <Mark :player="game.currentPlayer" animate />
       </span>
       <div>
-        <h2 id="lobby-title" class="lobby__title">You're playing {{ game.currentPlayer }}</h2>
+        <h2 id="lobby-title" class="lobby__title">{{ t.lobby.youArePlaying(game.currentPlayer) }}</h2>
         <p class="lobby__sub">
-          {{ isHost ? 'X goes first, so you make the opening move.' : 'Your friend plays X and makes the opening move.' }}
+          {{ isHost ? t.lobby.hostIntro : t.lobby.guestIntro }}
         </p>
       </div>
     </div>
 
     <div v-if="isHost" class="lobby__invite">
-      <label for="invite-link" class="lobby__label">Send this link to a friend</label>
+      <label for="invite-link" class="lobby__label">{{ t.lobby.sendLink }}</label>
       <div class="lobby__link-row">
         <input
           id="invite-link"
@@ -89,21 +90,21 @@ async function onClickShare() {
           @focus="linkInput?.select()"
         />
         <button type="button" class="btn btn--secondary lobby__copy" @click="onClickCopy">
-          {{ copied ? 'Copied' : 'Copy link' }}
+          {{ copied ? t.lobby.copied : t.lobby.copyLink }}
         </button>
       </div>
       <button v-if="canShare" type="button" class="btn btn--quiet btn--block" @click="onClickShare">
-        Share link
+        {{ t.lobby.shareLink }}
       </button>
       <p class="lobby__feedback" role="status">
-        <template v-if="copied">Link copied. Paste it in a message to your friend.</template>
-        <template v-else-if="copyFailed">Couldn't copy automatically. Select the link and copy it yourself.</template>
+        <template v-if="copied">{{ t.lobby.copiedFeedback }}</template>
+        <template v-else-if="copyFailed">{{ t.lobby.copyFailed }}</template>
       </p>
     </div>
 
     <p v-if="isHost" class="lobby__presence" :class="{ 'lobby__presence--here': connected }" role="status">
       <span class="lobby__dot" aria-hidden="true"></span>
-      {{ connected ? 'Your friend has joined.' : 'Waiting for your friend to open the link…' }}
+      {{ connected ? t.lobby.friendJoined : t.lobby.waitingForOpen }}
     </p>
 
     <button
@@ -112,7 +113,7 @@ async function onClickShare() {
       :disabled="!canStart"
       @click="emit('play')"
     >
-      {{ canStart ? 'Start game' : 'Waiting for your friend' }}
+      {{ canStart ? t.lobby.startGame : t.lobby.waitingForFriend }}
     </button>
   </section>
 </template>

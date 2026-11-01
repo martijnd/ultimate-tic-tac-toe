@@ -4,6 +4,7 @@ import { Game } from '../models/Game';
 import { Board as BoardModel } from '../models/Board';
 import { Cell } from '../models/Cell';
 import Board from './Board.vue';
+import { t } from '../i18n';
 
 const props = defineProps<{
   game: Game;
@@ -117,8 +118,8 @@ function onCellFocus(board: number, cell: number) {
     class="global"
     :class="{ 'global--inactive': !interactive, 'global--over': game.over }"
     role="group"
-    aria-label="Game board"
-    aria-roledescription="ultimate tic-tac-toe board"
+    :aria-label="t.board.label"
+    :aria-roledescription="t.board.roleDescription"
     @keydown="onKeydown"
   >
     <svg class="global__lines" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">

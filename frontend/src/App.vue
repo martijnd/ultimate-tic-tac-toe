@@ -7,13 +7,13 @@ import { Player } from './enums/Player';
 import { Board as BoardModel } from './models/Board';
 import { Cell } from './models/Cell';
 import useSocketIO from './composables/Socket.io';
-import { POSITIONS, boardName } from './positions';
+import { t } from './i18n';
 import TicTacToe from './components/TicTacToe.vue';
 import Lobby from './components/Lobby.vue';
 import GameStatus from './components/GameStatus.vue';
 import InstructionsDialog from './components/InstructionsDialog.vue';
+import LanguageSwitch from './components/LanguageSwitch.vue';
 
-const TITLE = 'Ultimate Tic Tac Toe';
 // The server ignores joins to a room that already has two players, so no answer means "full".
 const JOIN_TIMEOUT_MS = 5000;
 
@@ -28,6 +28,8 @@ const roomFull = ref(false);
 const serverUnreachable = ref(false);
 const showInstructions = ref(false);
 const announcement = ref('');
+// The tab title says "It's your turn!" while the tab is in the background and you're up.
+const turnTitleShown = ref(false);
 let joinTimer: number | undefined;
 
 type Phase = 'connecting' | 'offline' | 'full' | 'lobby' | 'playing' | 'left';
@@ -44,9 +46,17 @@ const phase = computed<Phase>(() => {
 function onVisibilityChange() {
   windowActive.value = !document.hidden;
   if (!document.hidden) {
-    document.title = TITLE;
+    turnTitleShown.value = false;
   }
 }
+
+watch(
+  [turnTitleShown, t],
+  () => {
+    document.title = turnTitleShown.value ? t.value.yourTurnTitle : t.value.documentTitle;
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   if (!SESSION_CODE) {
@@ -89,13 +99,13 @@ onMounted(() => {
 
   socket.on(Event.Disconnected, () => {
     opponentLeft.value = true;
-    announcement.value = 'Your friend left the game.';
+    announcement.value = t.value.announce.friendLeft;
   });
 
   socket.on(Event.PlayerAccepted, () => {
     playerConnected.value = true;
     if (game.value?.currentPlayer === Player.X) {
-      announcement.value = 'Your friend has joined. You can start the game.';
+      announcement.value = t.value.announce.friendJoined;
     }
   });
 
@@ -112,7 +122,7 @@ onBeforeUnmount(() => {
 // Show "it's your turn!" message when tab is inactive
 watch(() => game.value?.activePlayer, () => {
   if (game.value?.activePlayer === game.value?.currentPlayer && !windowActive.value) {
-    document.title = "It's your turn!";
+    turnTitleShown.value = true;
   }
 });
 
@@ -121,16 +131,16 @@ watch(() => game.value?.moveCount, () => {
   const g = game.value;
   if (!g || !g.lastMove) return;
   const { boardIndex, cellIndex, player } = g.lastMove;
-  const who = player === g.currentPlayer ? 'You' : 'Your friend';
-  const parts = [`${who} played ${POSITIONS[cellIndex]} in the ${boardName(boardIndex)}.`];
+  const a = t.value.announce;
+  const parts = [a.move(player === g.currentPlayer, cellIndex, boardIndex)];
 
   if (g.winner) {
-    parts.push(g.winner === g.currentPlayer ? 'You won the game!' : 'Your friend won the game.');
+    parts.push(g.winner === g.currentPlayer ? a.youWon : a.friendWon);
   } else if (g.draw) {
-    parts.push("It's a draw.");
+    parts.push(a.draw);
   } else if (g.activePlayer === g.currentPlayer) {
     const boards = g.availableBoards;
-    parts.push(boards.length === 1 ? `Your move, in the ${boardName(boards[0].index)}.` : 'Your move, in any open board.');
+    parts.push(boards.length === 1 ? a.yourMoveIn(boards[0].index) : a.yourMoveAnywhere);
   }
   announcement.value = parts.join(' ');
 });
@@ -177,7 +187,8 @@ function onClickPlayButton() {
 function onClickPlayAgain() {
   if (game.value) {
     game.value = new Game(game.value.currentPlayer);
-    announcement.value = game.value.currentPlayer === Player.X ? 'New game. Your move.' : 'New game. Your friend moves first.';
+    announcement.value =
+      game.value.currentPlayer === Player.X ? t.value.announce.newGameYouFirst : t.value.announce.newGameFriendFirst;
   }
 }
 
@@ -192,7 +203,7 @@ const boardGame = computed(() => game.value ?? placeholderGame);
 
 <template>
   <div class="app" :class="`app--${phase}`">
-    <a class="skip-link" href="#main">Skip to game</a>
+    <a class="skip-link" href="#main">{{ t.skipToGame }}</a>
 
     <header class="topbar">
       <div class="brand">
@@ -201,15 +212,22 @@ const boardGame = computed(() => game.value ?? placeholderGame);
           <path class="brand__x" d="M9 7 L 17 16 M17 7 L 9 16" />
           <circle class="brand__o" cx="32.5" cy="32.5" r="4.5" />
         </svg>
-        <h1 class="brand__title">Ultimate tic-tac-toe</h1>
+        <h1 class="brand__title">{{ t.title }}</h1>
       </div>
-      <button type="button" class="btn btn--quiet" aria-haspopup="dialog" @click="showInstructions = true">
-        How to play
-      </button>
+      <div class="topbar__actions">
+        <LanguageSwitch />
+        <button type="button" class="btn btn--quiet help-button" aria-haspopup="dialog" @click="showInstructions = true">
+          <svg class="help-button__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M9.2 9.1a2.9 2.9 0 0 1 5.6 1c0 1.9-2.8 2.5-2.8 4.4" />
+            <circle cx="12" cy="18.3" r="0.6" />
+          </svg>
+          <span class="help-button__text">{{ t.howToPlay }}</span>
+        </button>
+      </div>
     </header>
 
     <main id="main" class="stage" tabindex="-1">
-      <aside class="panel" aria-label="Game status">
+      <aside class="panel" :aria-label="t.gameStatus">
         <GameStatus v-if="phase === 'playing' && game" :game="game" @play-again="onClickPlayAgain" />
 
         <Lobby
@@ -220,25 +238,25 @@ const boardGame = computed(() => game.value ?? placeholderGame);
         />
 
         <section v-else-if="phase === 'left'" class="notice" aria-labelledby="notice-title">
-          <h2 id="notice-title" class="notice__title">Your friend left the game</h2>
-          <p class="notice__body">This game can't continue. Start a new one and send your friend the new link.</p>
-          <a class="btn btn--primary btn--block" href="/">Start a new game</a>
+          <h2 id="notice-title" class="notice__title">{{ t.notice.leftTitle }}</h2>
+          <p class="notice__body">{{ t.notice.leftBody }}</p>
+          <a class="btn btn--primary btn--block" href="/">{{ t.startNewGame }}</a>
         </section>
 
         <section v-else-if="phase === 'full'" class="notice" aria-labelledby="notice-title">
-          <h2 id="notice-title" class="notice__title">This game already has two players</h2>
-          <p class="notice__body">Start your own game and invite a friend to it.</p>
-          <button type="button" class="btn btn--primary btn--block" @click="startNewGame">Start a new game</button>
+          <h2 id="notice-title" class="notice__title">{{ t.notice.fullTitle }}</h2>
+          <p class="notice__body">{{ t.notice.fullBody }}</p>
+          <button type="button" class="btn btn--primary btn--block" @click="startNewGame">{{ t.startNewGame }}</button>
         </section>
 
         <section v-else-if="phase === 'offline'" class="notice" aria-labelledby="notice-title" role="alert">
-          <h2 id="notice-title" class="notice__title">Can't reach the game server</h2>
-          <p class="notice__body">Check your internet connection. We'll keep trying to connect.</p>
+          <h2 id="notice-title" class="notice__title">{{ t.notice.offlineTitle }}</h2>
+          <p class="notice__body">{{ t.notice.offlineBody }}</p>
         </section>
 
         <section v-else class="notice" aria-labelledby="notice-title" aria-busy="true">
-          <h2 id="notice-title" class="notice__title">Setting up the board…</h2>
-          <p class="notice__body">Connecting to the game server.</p>
+          <h2 id="notice-title" class="notice__title">{{ t.notice.connectingTitle }}</h2>
+          <p class="notice__body">{{ t.notice.connectingBody }}</p>
         </section>
       </aside>
 
@@ -247,7 +265,7 @@ const boardGame = computed(() => game.value ?? placeholderGame);
       </div>
     </main>
 
-    <footer class="footer">Made by Martijn</footer>
+    <footer class="footer">{{ t.footer }}</footer>
 
     <p class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement }}</p>
 
@@ -326,12 +344,32 @@ const boardGame = computed(() => game.value ?? placeholderGame);
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.025em;
-  white-space: nowrap;
+  text-wrap: balance;
+}
+
+.topbar__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .topbar .btn {
-  flex: none;
   white-space: nowrap;
+}
+
+.help-button__icon {
+  display: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+}
+
+.help-button__icon circle {
+  fill: currentColor;
 }
 
 @media (max-width: 479px) {
@@ -346,6 +384,27 @@ const boardGame = computed(() => game.value ?? placeholderGame);
 
   .brand__title {
     font-size: 1.125rem;
+  }
+
+  /* Icon-only on small phones; the text stays as the accessible name */
+  /* .topbar prefix: index.css loads after this file, so .btn--quiet would otherwise win */
+  .topbar .help-button {
+    width: 44px;
+    padding: 0;
+  }
+
+  .help-button__icon {
+    display: block;
+  }
+
+  .help-button__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 }
 

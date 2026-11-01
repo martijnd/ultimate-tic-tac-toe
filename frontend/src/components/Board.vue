@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Board } from '../models/Board';
 import { Cell as CellModel } from '../models/Cell';
-import { POSITIONS, boardName, capitalize } from '../positions';
+import { t } from '../i18n';
 import Cell from './Cell.vue';
 import Mark from './Mark.vue';
 
@@ -24,22 +24,20 @@ const emit = defineEmits<{
   (e: 'cell-focus', cellIndex: number): void;
 }>();
 
-const name = computed(() => capitalize(boardName(props.board.index)));
+const name = computed(() => t.value.board.name(props.board.index));
 const winner = computed(() => props.board.winner);
 const full = computed(() => !winner.value && props.board.filled);
 const playableHere = computed(() => props.target && props.yourTurn);
 
 const groupLabel = computed(() => {
-  if (winner.value) return `${name.value}, won by ${winner.value}`;
-  if (full.value) return `${name.value}, full`;
-  if (playableHere.value) return `${name.value}, play here`;
+  if (winner.value) return `${name.value}, ${t.value.board.wonBy(winner.value)}`;
+  if (full.value) return `${name.value}, ${t.value.board.full}`;
+  if (playableHere.value) return `${name.value}, ${t.value.board.playHere}`;
   return name.value;
 });
 
 function cellLabel(cell: CellModel) {
-  const parts = [`${capitalize(POSITIONS[cell.index])}: ${cell.mark ?? 'empty'}`];
-  if (props.lastMoveCell === cell.index) parts.push('last move');
-  return parts.join(', ');
+  return t.value.board.cell(cell.index, cell.mark, props.lastMoveCell === cell.index);
 }
 </script>
 

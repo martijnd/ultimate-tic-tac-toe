@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Game } from '../models/Game';
 import { Player } from '../enums/Player';
-import { boardName } from '../positions';
+import { t } from '../i18n';
 import Mark from './Mark.vue';
 
 const props = defineProps<{
@@ -18,27 +18,27 @@ const them = computed(() => (you.value === Player.X ? Player.O : Player.X));
 const yourTurn = computed(() => props.game.activePlayer === you.value);
 
 const players = computed(() => [
-  { player: you.value, name: 'You', boards: props.game.getWonBoards(you.value).length },
-  { player: them.value, name: 'Friend', boards: props.game.getWonBoards(them.value).length },
+  { player: you.value, name: t.value.status.you, boards: props.game.getWonBoards(you.value).length },
+  { player: them.value, name: t.value.status.friend, boards: props.game.getWonBoards(them.value).length },
 ]);
 
 const headline = computed(() => {
+  const s = t.value.status;
   const { winner, draw } = props.game;
-  if (winner) return winner === you.value ? 'You won!' : 'Your friend won';
-  if (draw) return "It's a draw";
-  return yourTurn.value ? 'Your move' : 'Their move';
+  if (winner) return winner === you.value ? s.youWon : s.friendWon;
+  if (draw) return s.draw;
+  return yourTurn.value ? s.yourMove : s.theirMove;
 });
 
 const detail = computed(() => {
+  const s = t.value.status;
   const { winner, draw, availableBoards } = props.game;
-  if (winner) return winner === you.value ? 'Three boards in a row. Nicely played.' : 'They got three boards in a row.';
-  if (draw) return 'No moves left and no three boards in a row.';
+  if (winner) return winner === you.value ? s.youWonDetail : s.friendWonDetail;
+  if (draw) return s.drawDetail;
 
-  const where =
-    availableBoards.length === 1
-      ? `in the ${boardName(availableBoards[0].index)}`
-      : 'in any highlighted board';
-  return yourTurn.value ? `Play ${where}.` : `Waiting for ${them.value} to play ${where}.`;
+  const only = availableBoards.length === 1 ? availableBoards[0].index : null;
+  if (yourTurn.value) return only === null ? s.playAnywhere : s.playIn(only);
+  return only === null ? s.waitingAnywhere(them.value) : s.waitingIn(them.value, only);
 });
 </script>
 
@@ -50,11 +50,11 @@ const detail = computed(() => {
     </div>
 
     <button v-if="game.over" type="button" class="btn btn--primary btn--block status__again" @click="emit('play-again')">
-      Play again
+      {{ t.status.playAgain }}
     </button>
-    <p v-if="game.over" class="status__note">Your friend needs to press Play again too.</p>
+    <p v-if="game.over" class="status__note">{{ t.status.playAgainNote }}</p>
 
-    <ul class="status__players" aria-label="Players">
+    <ul class="status__players" :aria-label="t.status.players">
       <li
         v-for="p in players"
         :key="p.player"
@@ -64,13 +64,13 @@ const detail = computed(() => {
         <span class="status__mark"><Mark :player="p.player" /></span>
         <span class="status__who">
           <span class="status__name">{{ p.name }}</span>
-          <span class="status__boards">{{ p.boards }} {{ p.boards === 1 ? 'board' : 'boards' }}</span>
+          <span class="status__boards">{{ t.status.boardsWon(p.boards) }}</span>
         </span>
-        <span v-if="!game.over && game.activePlayer === p.player" class="sr-only">, to move</span>
+        <span v-if="!game.over && game.activePlayer === p.player" class="sr-only">, {{ t.status.toMove }}</span>
       </li>
     </ul>
 
-    <p class="status__moves">Move {{ game.moveCount }}</p>
+    <p class="status__moves">{{ t.status.moveCount(game.moveCount) }}</p>
   </section>
 </template>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
+import { t } from '../i18n';
 
 const props = defineProps<{
   show: boolean;
@@ -41,23 +42,18 @@ const thick = [90, 180];
   >
     <div class="dialog__inner">
       <header class="dialog__header">
-        <h2 id="how-to-play-title" class="dialog__title">How to play</h2>
-        <button type="button" class="dialog__close" aria-label="Close" @click="dialog?.close()">
+        <h2 id="how-to-play-title" class="dialog__title">{{ t.help.title }}</h2>
+        <button type="button" class="dialog__close" :aria-label="t.help.close" @click="dialog?.close()">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M6 6 L18 18 M18 6 L6 18" />
           </svg>
         </button>
       </header>
 
-      <p class="dialog__lead">
-        Nine small tic-tac-toe boards sit inside one big one. Win three small boards in a row to win the game.
-      </p>
+      <p class="dialog__lead">{{ t.help.lead }}</p>
 
-      <h3>Where you play</h3>
-      <p>
-        X opens anywhere. After that, the cell you pick decides which board your opponent plays in next. Play the top
-        right cell of any board, and your opponent has to play in the top right board.
-      </p>
+      <h3>{{ t.help.whereHeading }}</h3>
+      <p>{{ t.help.whereBody }}</p>
 
       <figure class="diagram">
         <svg viewBox="-4 -4 278 278" role="img" aria-labelledby="diagram-caption">
@@ -74,24 +70,15 @@ const thick = [90, 180];
           <path class="diagram__arrow" d="M174 96 C 190 82, 204 70, 216 58" />
           <path class="diagram__arrow" d="M206 58 L217 57 L216 68" />
         </svg>
-        <figcaption id="diagram-caption">
-          X played the top right cell of the centre board, so O has to play in the top right board.
-        </figcaption>
+        <figcaption id="diagram-caption">{{ t.help.diagramCaption }}</figcaption>
       </figure>
 
-      <p>
-        The board you have to play in is highlighted. If that board is already won or full, you can play in any open
-        board instead.
-      </p>
+      <p>{{ t.help.highlightBody }}</p>
 
-      <h3>Winning</h3>
-      <p>
-        Get three in a row in a small board to win it. Once a board is won or full, nobody can play there again. Win
-        three boards in a row, across, down or diagonally, to win the game. If there's nowhere left to play, it's a
-        draw.
-      </p>
+      <h3>{{ t.help.winningHeading }}</h3>
+      <p>{{ t.help.winningBody }}</p>
 
-      <button type="button" class="btn btn--primary btn--block" @click="dialog?.close()">Got it</button>
+      <button type="button" class="btn btn--primary btn--block" @click="dialog?.close()">{{ t.help.gotIt }}</button>
     </div>
   </dialog>
 </template>
