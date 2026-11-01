@@ -6,3 +6,10 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>
   export default component
 }
+
+// The installed TypeScript's DOM lib predates these members of <dialog>.
+interface HTMLDialogElement {
+  open: boolean;
+  showModal(): void;
+  close(returnValue?: string): void;
+}

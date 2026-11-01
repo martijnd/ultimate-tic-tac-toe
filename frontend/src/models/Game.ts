@@ -1,6 +1,5 @@
 import { Board } from './Board';
 import { Cell } from './Cell';
-import confetti from 'canvas-confetti';
 import { Player } from '../enums/Player';
 
 export class Game {
@@ -8,6 +7,7 @@ export class Game {
   currentPlayer: Player;
   activePlayer: Player = Player.X;
   lastBoardIndex?: number;
+  lastMove: { boardIndex: number; cellIndex: number; player: Player } | null = null;
   moveCount = 0;
 
   constructor(currentPlayer: Player, boards?: Board[], activePlayer?: Player, lastBoardIndex?: number) {
@@ -30,6 +30,7 @@ export class Game {
 
     this.lastBoardIndex = cell.index;
     cell.mark = player;
+    this.lastMove = { boardIndex: board.index, cellIndex: cell.index, player };
     this.activePlayer = this.activePlayer === Player.X ? Player.O : Player.X;
     this.moveCount++;
   }
@@ -78,6 +79,15 @@ export class Game {
     return null;
   }
 
+  /** No one has won and there is nowhere left to play. */
+  get draw() {
+    return !this.winner && this.boards.every(board => !board.active);
+  }
+
+  get over() {
+    return Boolean(this.winner) || this.draw;
+  }
+
   getWonBoards(player: Player) {
     return Game.extractSections(this.boards, player, 'winner');
   }
@@ -88,21 +98,9 @@ export class Game {
     .map(([key]) => parseInt(key))
   }
 
-  hasWon(player: Player, boards: number[]) {
-    if (Game.WINNING_MOVES.some(move => Game.isSame(move, boards))) {
-      if (this.currentPlayer === player) {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      }
-
-      return true;
-    }
-
-    return false;
-  } 
+  hasWon(_player: Player, boards: number[]) {
+    return Game.WINNING_MOVES.some(move => Game.isSame(move, boards));
+  }
 
   static readonly WINNING_MOVES = [
     // horizontal

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .grid { stroke: #1b2333; }
+    .x { stroke: #2346d1; }
+    .o { stroke: #c8243b; }
+    @media (prefers-color-scheme: dark) {
+      .grid { stroke: #e6edf7; }
+      .x { stroke: #8db3ff; }
+      .o { stroke: #ff8f9e; }
+    }
+  </style>
+  <g fill="none" stroke-linecap="round" stroke-width="5">
+    <path class="grid" d="M23 6 C 22 24, 24 40, 22 58 M43 6 C 42 24, 44 40, 42 58 M6 22 C 24 23, 40 21, 58 22 M6 43 C 24 42, 40 44, 58 42" />
+    <path class="x" d="M9 7 L 17 16 M17 7 L 9 16" />
+    <circle class="o" cx="32.5" cy="32.5" r="4.5" />
+  </g>
+</svg>

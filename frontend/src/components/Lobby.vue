@@ -1,74 +1,256 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Game } from '../models/Game';
 import { Player } from '../enums/Player';
-import InstructionsDialog from './InstructionsDialog.vue';
+import Mark from './Mark.vue';
+
+const props = defineProps<{
+  game: Game;
+  connected: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'play'): void;
+}>();
 
 const currentUrl = ref('');
 const copied = ref(false);
-const showInstructionsDialog = ref(false);
+const copyFailed = ref(false);
+const linkInput = ref<HTMLInputElement | null>(null);
+const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+let copiedTimer: number | undefined;
 
 onMounted(() => {
   currentUrl.value = document.location.href;
-})
+});
 
-defineProps({
-  game: {
-    type: Object as () => Game,
-    required: true
-  },
-  connected: {
-    type: Boolean,
-    required: true
-  },
-})
+onBeforeUnmount(() => window.clearTimeout(copiedTimer));
 
-const emit = defineEmits(['play']);
+const isHost = computed(() => props.game.currentPlayer === Player.X);
+const canStart = computed(() => props.connected || !isHost.value);
 
-function onClickShowInstructionsButton() {
-  showInstructionsDialog.value = true;
-}
-
-async function onClickCopyButton() {
-  await navigator.clipboard.writeText(currentUrl.value);
+async function onClickCopy() {
+  copyFailed.value = false;
+  try {
+    await navigator.clipboard.writeText(currentUrl.value);
+  } catch {
+    // Clipboard API is unavailable on insecure origins (like a LAN dev server). Fall back to selecting the text.
+    linkInput.value?.select();
+    const ok = document.execCommand?.('copy');
+    if (!ok) {
+      copyFailed.value = true;
+      return;
+    }
+  }
   copied.value = true;
-
-  setTimeout(() => {
+  window.clearTimeout(copiedTimer);
+  copiedTimer = window.setTimeout(() => {
     copied.value = false;
-  }, 3000);
+  }, 2500);
 }
 
+async function onClickShare() {
+  try {
+    await navigator.share({
+      title: 'Ultimate tic-tac-toe',
+      text: 'Play a game of ultimate tic-tac-toe with me',
+      url: currentUrl.value,
+    });
+  } catch {
+    // Share sheet dismissed; nothing to do.
+  }
+}
 </script>
 
 <template>
-  <InstructionsDialog
-    :show="showInstructionsDialog"
-    @close="showInstructionsDialog = false"
-  />
-  <div
-    class="p-4 sm:p-8 bg-zinc-800 rounded-lg shadow border-2 border-gray-700 flex flex-col space-y-8"
-  >
-    <h2
-      class="text-white text-center text-xl font-bold"
-    >{{ `You are ${game.currentPlayer}` }}</h2>
-    <button
-      class="italic underline text-white"
-      @click="onClickShowInstructionsButton"
-    >How to play Ultimate Tic Tac Toe?</button>
-    <div
-      v-if="game.currentPlayer === Player.X"
-      class="text-center flex flex-col md:block"
-    >
-      <h2 class="text-white text-center text-lg mb-4">Invite a friend to play</h2>
-      <button
-        class="border border-zinc-600 font-bold px-4 py-2 rounded w-full text-white hover:bg-zinc-600 active:bg-zinc-700"
-        @click="onClickCopyButton"
-      >{{ copied ? 'Copied!' : 'Copy link' }}</button>
+  <section class="lobby" aria-labelledby="lobby-title">
+    <div class="lobby__you">
+      <span class="lobby__mark">
+        <Mark :player="game.currentPlayer" animate />
+      </span>
+      <div>
+        <h2 id="lobby-title" class="lobby__title">You're playing {{ game.currentPlayer }}</h2>
+        <p class="lobby__sub">
+          {{ isHost ? 'X goes first, so you make the opening move.' : 'Your friend plays X and makes the opening move.' }}
+        </p>
+      </div>
     </div>
+
+    <div v-if="isHost" class="lobby__invite">
+      <label for="invite-link" class="lobby__label">Send this link to a friend</label>
+      <div class="lobby__link-row">
+        <input
+          id="invite-link"
+          ref="linkInput"
+          class="lobby__link"
+          type="text"
+          readonly
+          :value="currentUrl"
+          @focus="linkInput?.select()"
+        />
+        <button type="button" class="btn btn--secondary lobby__copy" @click="onClickCopy">
+          {{ copied ? 'Copied' : 'Copy link' }}
+        </button>
+      </div>
+      <button v-if="canShare" type="button" class="btn btn--quiet btn--block" @click="onClickShare">
+        Share link
+      </button>
+      <p class="lobby__feedback" role="status">
+        <template v-if="copied">Link copied. Paste it in a message to your friend.</template>
+        <template v-else-if="copyFailed">Couldn't copy automatically. Select the link and copy it yourself.</template>
+      </p>
+    </div>
+
+    <p v-if="isHost" class="lobby__presence" :class="{ 'lobby__presence--here': connected }" role="status">
+      <span class="lobby__dot" aria-hidden="true"></span>
+      {{ connected ? 'Your friend has joined.' : 'Waiting for your friend to open the link…' }}
+    </p>
+
     <button
+      type="button"
+      class="btn btn--primary btn--block lobby__start"
+      :disabled="!canStart"
       @click="emit('play')"
-      class="block bg-zinc-500 font-semibold px-4 py-4 rounded text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-zinc-600 active:bg-zinc-700"
-      :disabled="!connected && game.currentPlayer === Player.X"
-    >{{ connected || game.currentPlayer !== Player.X ? 'Play!' : 'Waiting for player...' }}</button>
-  </div>
+    >
+      {{ canStart ? 'Start game' : 'Waiting for your friend' }}
+    </button>
+  </section>
 </template>
+
+<style scoped>
+.lobby {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.lobby__you {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lobby__mark {
+  flex: none;
+  width: 48px;
+  height: 48px;
+}
+
+.lobby__title {
+  margin: 0;
+  font-size: var(--step-2);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.lobby__sub {
+  margin: 0.375rem 0 0;
+  color: var(--ink-soft);
+}
+
+.lobby__invite {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.lobby__label {
+  font-weight: 600;
+}
+
+.lobby__link-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.lobby__link {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 0.875rem;
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius-control);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--step--1);
+  text-overflow: ellipsis;
+}
+
+.lobby__link:focus-visible {
+  outline-offset: 1px;
+}
+
+.lobby__copy {
+  flex: none;
+  min-width: 7.5rem;
+}
+
+.lobby__feedback {
+  margin: 0;
+  min-height: 1.5em;
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.lobby__feedback:empty {
+  min-height: 0;
+  margin-top: -0.625rem;
+}
+
+.lobby__presence {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.lobby__presence--here {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.lobby__dot {
+  position: relative;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+}
+
+.lobby__dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--ink-soft);
+  animation: ping 1.6s ease-out infinite;
+}
+
+.lobby__presence--here .lobby__dot {
+  background: var(--x);
+}
+
+.lobby__presence--here .lobby__dot::after {
+  display: none;
+}
+
+@keyframes ping {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.lobby__start {
+  min-height: 56px;
+  font-size: var(--step-1);
+}
+</style>
