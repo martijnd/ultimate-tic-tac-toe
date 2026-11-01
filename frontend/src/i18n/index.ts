@@ -12,7 +12,9 @@ function isLocale(value: unknown): value is Locale {
   return typeof value === 'string' && value in MESSAGES;
 }
 
-// A saved choice wins, then the browser's preferred languages, then English.
+const DEFAULT_LOCALE: Locale = 'nl';
+
+// A language picked with the switch wins; everyone else starts in Dutch.
 function detectLocale(): Locale {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -20,12 +22,7 @@ function detectLocale(): Locale {
   } catch {
     // Storage can be blocked (private mode, strict cookie settings); fall through.
   }
-  const preferred = navigator.languages?.length ? navigator.languages : [navigator.language];
-  for (const tag of preferred) {
-    const base = tag?.toLowerCase().split('-')[0];
-    if (isLocale(base)) return base;
-  }
-  return 'en';
+  return DEFAULT_LOCALE;
 }
 
 export const locale = ref<Locale>(detectLocale());
