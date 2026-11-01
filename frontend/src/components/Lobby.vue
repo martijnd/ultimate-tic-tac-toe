@@ -104,7 +104,7 @@ async function onClickShare() {
 
     <p v-if="isHost" class="lobby__presence" :class="{ 'lobby__presence--here': connected }" role="status">
       <span class="lobby__dot" aria-hidden="true"></span>
-      {{ connected ? t.lobby.friendJoined : t.lobby.waitingForOpen }}
+      {{ connected ? t.lobby.otherJoined : t.lobby.waitingForOpen }}
     </p>
 
     <button
@@ -113,7 +113,7 @@ async function onClickShare() {
       :disabled="!canStart"
       @click="emit('play')"
     >
-      {{ canStart ? t.lobby.startGame : t.lobby.waitingForFriend }}
+      {{ canStart ? t.lobby.startGame : t.lobby.waitingForOther }}
     </button>
   </section>
 </template>

@@ -1,6 +1,6 @@
 import type { Messages } from './en';
 
-// Nederlandse teksten. Informeel ("je"), zoals je met een vriend praat.
+// Nederlandse teksten. Informeel ("je").
 
 const cells = [
   'linksboven',
@@ -32,10 +32,10 @@ const nl: Messages = {
   startNewGame: 'Nieuw spel beginnen',
 
   notice: {
-    leftTitle: 'Je vriend heeft het spel verlaten',
-    leftBody: 'Dit spel kan niet verder. Begin een nieuw spel en stuur je vriend de nieuwe link.',
+    leftTitle: 'De andere speler heeft het spel verlaten',
+    leftBody: 'Dit spel kan niet verder. Begin een nieuw spel en deel de nieuwe link.',
     fullTitle: 'Dit spel heeft al twee spelers',
-    fullBody: 'Begin je eigen spel en nodig een vriend uit.',
+    fullBody: 'Begin je eigen spel en nodig iemand anders uit.',
     offlineTitle: 'De spelserver is niet bereikbaar',
     offlineBody: 'Controleer je internetverbinding. We blijven proberen verbinding te maken.',
     connectingTitle: 'Het bord wordt klaargezet…',
@@ -43,56 +43,56 @@ const nl: Messages = {
   },
 
   announce: {
-    friendLeft: 'Je vriend heeft het spel verlaten.',
-    friendJoined: 'Je vriend doet mee. Je kunt het spel starten.',
-    move: (byYou, cell, board) => `${byYou ? 'Jij speelde' : 'Je vriend speelde'} ${cells[cell]} ${inBoard[board]}.`,
+    otherLeft: 'De andere speler heeft het spel verlaten.',
+    otherJoined: 'De andere speler doet mee. Je kunt het spel starten.',
+    move: (byYou, cell, board) => `${byYou ? 'Jij speelde' : 'De andere speler speelde'} ${cells[cell]} ${inBoard[board]}.`,
     youWon: 'Je hebt gewonnen!',
-    friendWon: 'Je vriend heeft gewonnen.',
+    otherWon: 'De andere speler heeft gewonnen.',
     draw: 'Gelijkspel.',
     yourMoveIn: board => `Jouw beurt, ${inBoard[board]}.`,
     yourMoveAnywhere: 'Jouw beurt, in een open bord naar keuze.',
     newGameYouFirst: 'Nieuw spel. Jij begint.',
-    newGameFriendFirst: 'Nieuw spel. Je vriend begint.',
+    newGameOtherFirst: 'Nieuw spel. De andere speler begint.',
   },
 
   lobby: {
     youArePlaying: player => `Jij speelt ${player}`,
     hostIntro: 'X begint, dus jij doet de eerste zet.',
-    guestIntro: 'Je vriend speelt X en doet de eerste zet.',
-    sendLink: 'Stuur deze link naar een vriend',
+    guestIntro: 'De andere speler speelt X en doet de eerste zet.',
+    sendLink: 'Stuur deze link naar iemand anders',
     copyLink: 'Link kopiëren',
     copied: 'Gekopieerd',
     shareLink: 'Link delen',
     shareTitle: 'Ultimate boter-kaas-en-eieren',
     shareText: 'Speel een potje ultimate boter-kaas-en-eieren met me',
-    copiedFeedback: 'Link gekopieerd. Plak hem in een bericht aan je vriend.',
+    copiedFeedback: 'Link gekopieerd. Plak hem in een bericht aan degene met wie je wilt spelen.',
     copyFailed: 'Kopiëren lukte niet. Selecteer de link en kopieer hem zelf.',
-    friendJoined: 'Je vriend doet mee.',
-    waitingForOpen: 'Wachten tot je vriend de link opent…',
+    otherJoined: 'De andere speler doet mee.',
+    waitingForOpen: 'Wachten tot de andere speler de link opent…',
     startGame: 'Spel starten',
-    waitingForFriend: 'Wachten op je vriend',
+    waitingForOther: 'Wachten op de andere speler',
   },
 
   status: {
     players: 'Spelers',
     you: 'Jij',
-    friend: 'Vriend',
+    other: 'Andere speler',
     boardsWon: n => `${n} ${n === 1 ? 'bord' : 'borden'}`,
     toMove: 'aan zet',
     youWon: 'Gewonnen!',
-    friendWon: 'Je vriend wint',
+    otherWon: 'De andere speler wint',
     draw: 'Gelijkspel',
     yourMove: 'Jouw beurt',
     theirMove: 'Even wachten',
     youWonDetail: 'Drie borden op een rij. Goed gespeeld!',
-    friendWonDetail: 'Je vriend had drie borden op een rij.',
+    otherWonDetail: 'De andere speler had drie borden op een rij.',
     drawDetail: 'Er zijn geen zetten meer en niemand heeft drie borden op een rij.',
     playIn: board => `Speel ${inBoard[board]}.`,
     playAnywhere: 'Speel in een van de gemarkeerde borden.',
     waitingIn: (player, board) => `Wachten tot ${player} speelt ${inBoard[board]}.`,
     waitingAnywhere: player => `Wachten tot ${player} speelt in een van de gemarkeerde borden.`,
     playAgain: 'Nog een keer',
-    playAgainNote: 'Je vriend moet ook op Nog een keer drukken.',
+    playAgainNote: 'De andere speler moet ook op Nog een keer drukken.',
     moveCount: n => `Zet ${n}`,
   },
 

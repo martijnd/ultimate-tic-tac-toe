@@ -19,13 +19,13 @@ const yourTurn = computed(() => props.game.activePlayer === you.value);
 
 const players = computed(() => [
   { player: you.value, name: t.value.status.you, boards: props.game.getWonBoards(you.value).length },
-  { player: them.value, name: t.value.status.friend, boards: props.game.getWonBoards(them.value).length },
+  { player: them.value, name: t.value.status.other, boards: props.game.getWonBoards(them.value).length },
 ]);
 
 const headline = computed(() => {
   const s = t.value.status;
   const { winner, draw } = props.game;
-  if (winner) return winner === you.value ? s.youWon : s.friendWon;
+  if (winner) return winner === you.value ? s.youWon : s.otherWon;
   if (draw) return s.draw;
   return yourTurn.value ? s.yourMove : s.theirMove;
 });
@@ -33,7 +33,7 @@ const headline = computed(() => {
 const detail = computed(() => {
   const s = t.value.status;
   const { winner, draw, availableBoards } = props.game;
-  if (winner) return winner === you.value ? s.youWonDetail : s.friendWonDetail;
+  if (winner) return winner === you.value ? s.youWonDetail : s.otherWonDetail;
   if (draw) return s.drawDetail;
 
   const only = availableBoards.length === 1 ? availableBoards[0].index : null;
@@ -175,9 +175,7 @@ const detail = computed(() => {
 
 .status__name {
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
 }
 
 .status__boards {

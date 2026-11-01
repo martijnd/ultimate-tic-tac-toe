@@ -99,13 +99,13 @@ onMounted(() => {
 
   socket.on(Event.Disconnected, () => {
     opponentLeft.value = true;
-    announcement.value = t.value.announce.friendLeft;
+    announcement.value = t.value.announce.otherLeft;
   });
 
   socket.on(Event.PlayerAccepted, () => {
     playerConnected.value = true;
     if (game.value?.currentPlayer === Player.X) {
-      announcement.value = t.value.announce.friendJoined;
+      announcement.value = t.value.announce.otherJoined;
     }
   });
 
@@ -135,7 +135,7 @@ watch(() => game.value?.moveCount, () => {
   const parts = [a.move(player === g.currentPlayer, cellIndex, boardIndex)];
 
   if (g.winner) {
-    parts.push(g.winner === g.currentPlayer ? a.youWon : a.friendWon);
+    parts.push(g.winner === g.currentPlayer ? a.youWon : a.otherWon);
   } else if (g.draw) {
     parts.push(a.draw);
   } else if (g.activePlayer === g.currentPlayer) {
@@ -188,7 +188,7 @@ function onClickPlayAgain() {
   if (game.value) {
     game.value = new Game(game.value.currentPlayer);
     announcement.value =
-      game.value.currentPlayer === Player.X ? t.value.announce.newGameYouFirst : t.value.announce.newGameFriendFirst;
+      game.value.currentPlayer === Player.X ? t.value.announce.newGameYouFirst : t.value.announce.newGameOtherFirst;
   }
 }
 
