@@ -7,6 +7,7 @@ import { Player } from './enums/Player';
 import { Board as BoardModel } from './models/Board';
 import { Cell } from './models/Cell';
 import useSocketIO from './composables/Socket.io';
+import { playJoinSound, playMoveSound } from './composables/sounds';
 import { t } from './i18n';
 import TicTacToe from './components/TicTacToe.vue';
 import Lobby from './components/Lobby.vue';
@@ -93,6 +94,7 @@ onMounted(() => {
 
       if (board && cell) {
         game.value.placeMark(board, cell, player);
+        playMoveSound();
       }
     }
   });
@@ -104,6 +106,7 @@ onMounted(() => {
 
   socket.on(Event.PlayerAccepted, () => {
     playerConnected.value = true;
+    if (game.value?.currentPlayer === Player.X) playJoinSound();
     if (game.value?.currentPlayer === Player.X) {
       announcement.value = t.value.announce.otherJoined;
     }
