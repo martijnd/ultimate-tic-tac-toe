@@ -75,10 +75,7 @@ const detail = computed(() => {
 <template>
   <section class="status" aria-labelledby="status-title">
     <div class="status__turn" :class="{ 'status__turn--you': yourTurn && !game.over }">
-      <div class="status__head">
-        <h2 id="status-title" class="status__headline">{{ headline }}</h2>
-      </div>
-      <ReactionMenu class="status__react" @react="(emoji: Reaction) => emit('react', emoji)" />
+      <h2 id="status-title" class="status__headline">{{ headline }}</h2>
       <p class="status__detail">{{ detail }}</p>
     </div>
 
@@ -108,6 +105,12 @@ const detail = computed(() => {
           <span class="status__boards">{{ t.status.boardsWon(p.boards) }}</span>
         </span>
         <span v-if="!game.over && game.activePlayer === p.player" class="sr-only">, {{ t.status.toMove }}</span>
+        <!-- Your reactions float up out of your own chip, so the button to send them lives here too -->
+        <ReactionMenu
+          v-if="p.player === you"
+          class="status__react"
+          @react="(emoji: Reaction) => emit('react', emoji)"
+        />
         <span
           v-if="p.reaction"
           :key="p.reaction.id"
@@ -138,26 +141,8 @@ const detail = computed(() => {
   gap: 1.25rem;
 }
 
-/* Headline with the React button on its right; the detail line runs underneath both */
 .status__turn {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: 0.5rem;
-  align-items: start;
-}
-
-/* Tucked into the panel's padding so short headlines like "Even wachten" stay on one line */
-.status__react {
-  grid-column: 2;
-  grid-row: 1;
-  margin: -0.125rem -0.875rem 0 0;
-}
-
-@media (max-width: 959px) {
-  .status__react {
-    margin: -0.25rem -0.5rem 0 0;
-  }
 }
 
 .status__headline {
@@ -193,7 +178,6 @@ const detail = computed(() => {
 }
 
 .status__detail {
-  grid-column: 1 / -1;
   margin: 0.5rem 0 0;
   font-size: var(--step-1);
   line-height: 1.35;
@@ -246,6 +230,11 @@ const detail = computed(() => {
   pointer-events: none;
   opacity: 0;
   animation: reaction-float 2.4s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+.status__player:first-child .status__reaction {
+  top: -1.5rem;
+  right: -0.375rem;
 }
 
 .status__reaction--them {
@@ -311,6 +300,36 @@ const detail = computed(() => {
   border: 1.5px solid var(--rule);
   border-radius: var(--radius-control);
   min-width: 0;
+}
+
+/* React button as a round badge on the top-right corner of your chip, where your reactions
+   float up from. Sitting on the corner, it takes no room from the name and board count. */
+.status__react :deep(.reactions__toggle) {
+  position: absolute;
+  top: -16px;
+  right: -8px;
+  z-index: 1;
+  width: 44px;
+  min-height: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border-width: 1.5px;
+  background: var(--surface);
+}
+
+.status__react :deep(.reactions__icon) {
+  width: 26px;
+  height: 26px;
+}
+
+.status__react :deep(.reactions__toggle:hover),
+.status__react :deep(.reactions__toggle[aria-expanded='true']) {
+  border-color: var(--ink);
+}
+
+.status__react :deep(.reactions__toggle[aria-expanded='true']) {
+  background: var(--highlight);
+  color: #1b2333;
 }
 
 .status__player--active {

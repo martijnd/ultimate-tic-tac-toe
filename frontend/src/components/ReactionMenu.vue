@@ -113,8 +113,9 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onPointerDown)
 </template>
 
 <style scoped>
+/* Not positioned itself: the popup is placed against the nearest positioned ancestor
+   (the player chip), so it can open across the panel instead of being pinned to the button. */
 .reactions {
-  position: relative;
   flex: none;
 }
 
@@ -142,10 +143,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onPointerDown)
   fill: currentColor;
 }
 
-/* Speech-bubble style popup below the button, aligned to its right edge */
+/* Popup below the chip, starting at its left edge so it stays inside the panel */
 .reactions__menu {
   position: absolute;
-  right: 0;
+  left: 0;
   top: calc(100% + 8px);
   z-index: 5;
   display: flex;
@@ -155,7 +156,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onPointerDown)
   border-radius: 999px;
   background: var(--surface);
   box-shadow: 0 8px 24px rgba(15, 30, 54, 0.16);
-  transform-origin: calc(100% - 1.5rem) 0;
+  transform-origin: 30% 0;
   animation: menu-in 160ms cubic-bezier(0.2, 0.8, 0.3, 1.2);
 }
 
