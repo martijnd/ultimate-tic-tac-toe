@@ -1,11 +1,19 @@
-# Vue 3 + Typescript + Vite
+# Ultimate Tic Tac Toe
 
-This template should help get you started developing with Vue 3 and Typescript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Monorepo with a Vue frontend and a Socket.IO relay backend.
 
-## Recommended IDE Setup
+- `frontend/`: Vue 3 + Vite app, hosted on Vercel at https://ultimatetictactoe.x4d.nl (set the Vercel project's Root Directory to `frontend`).
+- `backend/`: Socket.IO relay server, runs in docker on the Linode behind nginx at https://tic.x4d.nl.
 
-- [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+## Backend
 
-## Type Support For `.vue` Imports in TS
+Each room (the session code in the URL) holds two players: the first is X, the second is O.
 
-Since TypeScript cannot handle type information for `.vue` imports, they are shimmed to be a generic Vue component type by default. In most cases this is fine if you don't really care about component prop types outside of templates. However, if you wish to get actual prop types in `.vue` imports (for example to get props validation when using manual `h(...)` calls), you can enable Volar's `.vue` type support plugin by running `Volar: Switch TS Plugin on/off` from VSCode command palette.
+```
+cd backend
+docker build -t ultimate-tic-tac-toe-server .
+docker run -d --name ultimate-tic-tac-toe-server --restart unless-stopped \
+  -p 127.0.0.1:5001:5001 ultimate-tic-tac-toe-server
+```
+
+`ALLOWED_ORIGINS` (comma separated) overrides the allowed CORS origins. `nginx-tic.x4d.nl.conf` is the nginx site config (run certbot afterwards).
