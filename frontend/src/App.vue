@@ -22,6 +22,11 @@ const JOIN_TIMEOUT_MS = 5000;
 // After this long without the other player, offer to start a new game.
 const OTHER_GONE_MS = 60_000;
 
+// Room codes are six-digit numbers without a leading zero; the server refuses anything else.
+// Keep in sync with backend/rooms.js.
+const isRoomCode = (code: string) => /^[1-9]\d{5}$/.test(code);
+const newRoomCode = () => String(100000 + Math.floor(Math.random() * 900000));
+
 type Move = { boardIndex: number; cellIndex: number; player: Player };
 type ResumeState = {
   player: Player;
@@ -167,8 +172,8 @@ function restore(state: ResumeState) {
 }
 
 onMounted(() => {
-  if (!SESSION_CODE) {
-    window.location.href = `/${(Math.random() * 100000).toFixed(0)}`;
+  if (!isRoomCode(SESSION_CODE)) {
+    window.location.href = `/${newRoomCode()}`;
     return;
   }
   const token = playerToken(SESSION_CODE);
