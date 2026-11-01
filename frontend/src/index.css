@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /*
  * Design tokens. Light theme is ink on graph paper; dark theme is a blueprint.
