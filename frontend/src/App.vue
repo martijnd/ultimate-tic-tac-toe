@@ -7,7 +7,9 @@ import { Player } from './enums/Player';
 import { Board as BoardModel } from './models/Board';
 import { Cell } from './models/Cell';
 import useSocketIO from './composables/Socket.io';
-import { playJoinSound, playMoveSound } from './composables/sounds';
+import { hasStarted, markStarted, playerToken } from './composables/session';
+import { playJoinSound, playMoveSound, playReactionSound } from './composables/sounds';
+import { REACTIONS, REACTION_COOLDOWN_MS, type Reaction } from './reactions';
 import { t } from './i18n';
 import TicTacToe from './components/TicTacToe.vue';
 import Lobby from './components/Lobby.vue';
@@ -15,33 +17,95 @@ import GameStatus from './components/GameStatus.vue';
 import InstructionsDialog from './components/InstructionsDialog.vue';
 import LanguageSwitch from './components/LanguageSwitch.vue';
 
-// The server ignores joins to a room that already has two players, so no answer means "full".
+// Fallback in case the server never answers a join; it normally says "full" itself.
 const JOIN_TIMEOUT_MS = 5000;
+// After this long without the other player, offer to start a new game.
+const OTHER_GONE_MS = 60_000;
+
+type Move = { boardIndex: number; cellIndex: number; player: Player };
+type ResumeState = {
+  player: Player;
+  games: Move[][];
+  rematch: Record<Player, boolean>;
+  otherJoined: boolean;
+  otherOnline: boolean;
+};
+type Result = 'you' | 'them' | 'draw';
 
 const { socket } = useSocketIO();
 const windowActive = ref(true);
 const game = ref<Game | null>(null);
 const SESSION_CODE = window.location.pathname.split('/')[1];
-const clickedPlay = ref(false);
+const clickedPlay = ref(SESSION_CODE ? hasStarted(SESSION_CODE) : false);
+/** The other player has a seat and is connected right now. */
 const playerConnected = ref(false);
-const opponentLeft = ref(false);
 const roomFull = ref(false);
 const serverUnreachable = ref(false);
+/** This tab's own connection to the server is down (after having joined). */
+const connectionLost = ref(false);
+/** This seat was taken over by another tab. */
+const replaced = ref(false);
+/** The other player had joined but their connection dropped. */
+const otherOffline = ref(false);
+const otherGone = ref(false);
 const showInstructions = ref(false);
 const announcement = ref('');
 // The tab title says "It's your turn!" while the tab is in the background and you're up.
 const turnTitleShown = ref(false);
 let joinTimer: number | undefined;
+let otherGoneTimer: number | undefined;
 
-type Phase = 'connecting' | 'offline' | 'full' | 'lobby' | 'playing' | 'left';
+// Session score across rematches. The starting player alternates each game: X opens game 1, O game 2, …
+const round = ref(0);
+const pastResults = ref<Result[]>([]);
+const starterFor = (n: number) => (n % 2 === 0 ? Player.X : Player.O);
+const nextStarter = computed(() => starterFor(round.value + 1));
+
+function resultOf(g: Game): Result | null {
+  if (g.winner) return g.winner === g.currentPlayer ? 'you' : 'them';
+  return g.draw ? 'draw' : null;
+}
+
+const score = computed(() => {
+  const current = game.value ? resultOf(game.value) : null;
+  const all = current ? [...pastResults.value, current] : pastResults.value;
+  return {
+    you: all.filter(r => r === 'you').length,
+    them: all.filter(r => r === 'them').length,
+    draws: all.filter(r => r === 'draw').length,
+  };
+});
+
+// Rematch handshake: the next game starts once both players pressed "Play again".
+const wantsRematch = ref(false);
+const otherWantsRematch = ref(false);
+const rematch = computed(() => (wantsRematch.value ? 'you' : otherWantsRematch.value ? 'them' : 'none'));
+
+// The latest reaction from each side; `id` changes on every reaction so the bubble re-animates.
+type ShownReaction = { emoji: Reaction; id: number };
+const yourReaction = ref<ShownReaction | null>(null);
+const theirReaction = ref<ShownReaction | null>(null);
+let reactionId = 0;
+const BURST = 7;
+let lastReactionAt = 0;
+
+type Phase = 'connecting' | 'offline' | 'full' | 'replaced' | 'lobby' | 'playing';
 
 const phase = computed<Phase>(() => {
-  if (opponentLeft.value) return 'left';
+  if (replaced.value) return 'replaced';
   if (game.value && clickedPlay.value) return 'playing';
   if (game.value) return 'lobby';
   if (roomFull.value) return 'full';
   if (serverUnreachable.value) return 'offline';
   return 'connecting';
+});
+
+/** Shown above the game or lobby while either side is disconnected. */
+const connectionMessage = computed(() => {
+  const c = t.value.connection;
+  if (connectionLost.value) return c.youOffline;
+  if (otherOffline.value) return otherGone.value ? c.otherGone : c.otherOffline;
+  return '';
 });
 
 function onVisibilityChange() {
@@ -59,12 +123,57 @@ watch(
   { immediate: true }
 );
 
+// The browser knows right away when the network goes; don't wait for the socket heartbeat to time out.
+function onBrowserOffline() {
+  if (socket.connected) socket.disconnect();
+}
+
+function onBrowserOnline() {
+  if (!replaced.value && socket.disconnected) socket.connect();
+}
+
+function setOtherOffline(offline: boolean) {
+  otherOffline.value = offline;
+  otherGone.value = false;
+  window.clearTimeout(otherGoneTimer);
+  if (offline) otherGoneTimer = window.setTimeout(() => (otherGone.value = true), OTHER_GONE_MS);
+}
+
+function replay(me: Player, moves: Move[], starter: Player) {
+  const g = new Game(me, undefined, starter);
+  for (const { boardIndex, cellIndex, player } of moves) {
+    const board = g.boards[boardIndex];
+    const cell = board?.cells[cellIndex];
+    if (board && cell) g.placeMark(board, cell, player);
+  }
+  return g;
+}
+
+/** Rebuild everything from the server's copy of the room, after joining or reconnecting. */
+function restore(state: ResumeState) {
+  const games = state.games.length ? state.games : [[]];
+  const replayed = games.map((moves, i) => replay(state.player, moves, starterFor(i)));
+  pastResults.value = replayed.slice(0, -1).map(g => resultOf(g) ?? 'draw');
+  round.value = games.length - 1;
+  game.value = replayed[replayed.length - 1];
+
+  const them = state.player === Player.X ? Player.O : Player.X;
+  wantsRematch.value = state.rematch[state.player];
+  otherWantsRematch.value = state.rematch[them];
+  playerConnected.value = state.otherOnline;
+  setOtherOffline(state.otherJoined && !state.otherOnline);
+  // Anything already played means both players are past the lobby
+  if (games.length > 1 || games[0].length > 0) clickedPlay.value = true;
+}
+
 onMounted(() => {
   if (!SESSION_CODE) {
     window.location.href = `/${(Math.random() * 100000).toFixed(0)}`;
     return;
   }
+  const token = playerToken(SESSION_CODE);
 
+  // Fires on the first connection and on every automatic reconnect; (re)join each time.
   socket.on('connect', () => {
     serverUnreachable.value = false;
     window.clearTimeout(joinTimer);
@@ -73,16 +182,42 @@ onMounted(() => {
         if (!game.value) roomFull.value = true;
       }, JOIN_TIMEOUT_MS);
     }
+    socket.emit(Event.Join, { code: SESSION_CODE, token });
   });
 
   socket.on('connect_error', () => {
-    serverUnreachable.value = true;
+    if (!game.value) serverUnreachable.value = true;
+  });
+
+  socket.on('disconnect', (reason: string) => {
+    // The server closed this socket on purpose, because the game was opened in another tab
+    if (reason === 'io server disconnect') return;
+    if (game.value) {
+      connectionLost.value = true;
+      announcement.value = t.value.connection.youOffline;
+    }
+  });
+
+  socket.on(Event.Replaced, () => {
+    replaced.value = true;
+  });
+
+  socket.on(Event.Full, () => {
+    window.clearTimeout(joinTimer);
+    roomFull.value = true;
   });
 
   socket.on(Event.Accepted, (player: Player) => {
     window.clearTimeout(joinTimer);
     roomFull.value = false;
-    game.value = new Game(player);
+    if (!game.value || game.value.currentPlayer !== player) game.value = new Game(player);
+  });
+
+  socket.on(Event.Resume, (state: ResumeState) => {
+    const wasLost = connectionLost.value;
+    connectionLost.value = false;
+    restore(state);
+    if (wasLost) announcement.value = t.value.announce.reconnected;
   });
 
   socket.on(Event.PlaceMark, ({ code, boardIndex, cellIndex, player }) => {
@@ -99,27 +234,55 @@ onMounted(() => {
     }
   });
 
-  socket.on(Event.Disconnected, () => {
-    opponentLeft.value = true;
-    announcement.value = t.value.announce.otherLeft;
+  socket.on(Event.Rematch, ({ code }: { code: string }) => {
+    if (code !== SESSION_CODE || !game.value?.over) return;
+    otherWantsRematch.value = true;
+    if (!wantsRematch.value) {
+      playJoinSound();
+      announcement.value = t.value.announce.otherWantsRematch;
+    }
+    maybeStartRematch();
+  });
+
+  socket.on(Event.Reaction, ({ code, emoji }: { code: string; emoji: Reaction }) => {
+    if (code !== SESSION_CODE || !REACTIONS.includes(emoji)) return;
+    theirReaction.value = { emoji, id: ++reactionId };
+    playReactionSound();
+    announcement.value = t.value.announce.otherReacted(t.value.reactions.names[REACTIONS.indexOf(emoji)]);
+  });
+
+  socket.on(Event.OpponentOffline, () => {
+    playerConnected.value = false;
+    setOtherOffline(true);
+    announcement.value = t.value.announce.otherOffline;
+  });
+
+  socket.on(Event.OpponentOnline, () => {
+    playerConnected.value = true;
+    setOtherOffline(false);
+    announcement.value = t.value.announce.otherBack;
   });
 
   socket.on(Event.PlayerAccepted, () => {
     playerConnected.value = true;
-    if (game.value?.currentPlayer === Player.X) playJoinSound();
+    setOtherOffline(false);
     if (game.value?.currentPlayer === Player.X) {
+      playJoinSound();
       announcement.value = t.value.announce.otherJoined;
     }
   });
 
-  socket.emit(Event.Join, { code: SESSION_CODE });
-
   document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('offline', onBrowserOffline);
+  window.addEventListener('online', onBrowserOnline);
 });
 
 onBeforeUnmount(() => {
   window.clearTimeout(joinTimer);
+  window.clearTimeout(otherGoneTimer);
   document.removeEventListener('visibilitychange', onVisibilityChange);
+  window.removeEventListener('offline', onBrowserOffline);
+  window.removeEventListener('online', onBrowserOnline);
 });
 
 // Show "it's your turn!" message when tab is inactive
@@ -148,9 +311,8 @@ watch(() => game.value?.moveCount, () => {
   announcement.value = parts.join(' ');
 });
 
-// Celebrate when you win. Only fires once per game, and not at all with reduced motion.
-watch(() => game.value?.winner, (winner) => {
-  if (!winner || winner !== game.value?.currentPlayer) return;
+// Celebrate when your move wins the game. Not when a finished game is restored, and not with reduced motion.
+function celebrate() {
   const styles = getComputedStyle(document.documentElement);
   confetti({
     particleCount: 140,
@@ -163,10 +325,13 @@ watch(() => game.value?.winner, (winner) => {
     ],
     disableForReducedMotion: true,
   });
-});
+}
+
+/** You can place marks: in a game, connected, and not taken over by another tab. */
+const canPlay = computed(() => phase.value === 'playing' && !connectionLost.value);
 
 function onMarked(board: BoardModel, cell: Cell) {
-  if (!game.value || phase.value !== 'playing') return;
+  if (!game.value || !canPlay.value) return;
   // If you're not the active player
   if (game.value.activePlayer !== game.value.currentPlayer) return;
 
@@ -181,22 +346,48 @@ function onMarked(board: BoardModel, cell: Cell) {
     cellIndex: cell.index,
     player: game.value.currentPlayer,
   });
+  if (game.value.winner === game.value.currentPlayer) celebrate();
 }
 
 function onClickPlayButton() {
   clickedPlay.value = true;
+  markStarted(SESSION_CODE);
 }
 
 function onClickPlayAgain() {
-  if (game.value) {
-    game.value = new Game(game.value.currentPlayer);
-    announcement.value =
-      game.value.currentPlayer === Player.X ? t.value.announce.newGameYouFirst : t.value.announce.newGameOtherFirst;
-  }
+  if (!game.value?.over || wantsRematch.value || connectionLost.value) return;
+  wantsRematch.value = true;
+  socket.emit(Event.Rematch, { code: SESSION_CODE });
+  maybeStartRematch();
+}
+
+function maybeStartRematch() {
+  if (!game.value || !wantsRematch.value || !otherWantsRematch.value) return;
+  wantsRematch.value = false;
+  otherWantsRematch.value = false;
+  pastResults.value = [...pastResults.value, resultOf(game.value) ?? 'draw'];
+  round.value++;
+  const starter = starterFor(round.value);
+  game.value = new Game(game.value.currentPlayer, undefined, starter);
+  announcement.value =
+    starter === game.value.currentPlayer ? t.value.announce.newGameYouFirst : t.value.announce.newGameOtherFirst;
+}
+
+function onReact(emoji: Reaction) {
+  if (connectionLost.value) return;
+  const now = Date.now();
+  if (now - lastReactionAt < REACTION_COOLDOWN_MS) return;
+  lastReactionAt = now;
+  yourReaction.value = { emoji, id: ++reactionId };
+  socket.emit(Event.Reaction, { code: SESSION_CODE, emoji });
 }
 
 function startNewGame() {
   window.location.href = '/';
+}
+
+function playHere() {
+  window.location.reload();
 }
 
 // An empty board to show behind the lobby and loading states
@@ -231,7 +422,27 @@ const boardGame = computed(() => game.value ?? placeholderGame);
 
     <main id="main" class="stage" tabindex="-1">
       <aside class="panel" :aria-label="t.gameStatus">
-        <GameStatus v-if="phase === 'playing' && game" :game="game" @play-again="onClickPlayAgain" />
+        <div
+          v-if="connectionMessage && (phase === 'playing' || phase === 'lobby')"
+          class="connection"
+          :class="{ 'connection--you': connectionLost }"
+        >
+          <span class="connection__dot" aria-hidden="true" />
+          <p class="connection__text">{{ connectionMessage }}</p>
+          <a v-if="otherGone && !connectionLost" class="btn btn--secondary connection__new" href="/">{{ t.startNewGame }}</a>
+        </div>
+
+        <GameStatus
+          v-if="phase === 'playing' && game"
+          :game="game"
+          :score="score"
+          :rematch="rematch"
+          :you-start-next="nextStarter === game.currentPlayer"
+          :your-reaction="yourReaction"
+          :their-reaction="theirReaction"
+          @play-again="onClickPlayAgain"
+          @react="onReact"
+        />
 
         <Lobby
           v-else-if="phase === 'lobby' && game"
@@ -240,10 +451,10 @@ const boardGame = computed(() => game.value ?? placeholderGame);
           @play="onClickPlayButton"
         />
 
-        <section v-else-if="phase === 'left'" class="notice" aria-labelledby="notice-title">
-          <h2 id="notice-title" class="notice__title">{{ t.notice.leftTitle }}</h2>
-          <p class="notice__body">{{ t.notice.leftBody }}</p>
-          <a class="btn btn--primary btn--block" href="/">{{ t.startNewGame }}</a>
+        <section v-else-if="phase === 'replaced'" class="notice" aria-labelledby="notice-title">
+          <h2 id="notice-title" class="notice__title">{{ t.notice.replacedTitle }}</h2>
+          <p class="notice__body">{{ t.notice.replacedBody }}</p>
+          <button type="button" class="btn btn--primary btn--block" @click="playHere">{{ t.notice.playHere }}</button>
         </section>
 
         <section v-else-if="phase === 'full'" class="notice" aria-labelledby="notice-title">
@@ -264,7 +475,17 @@ const boardGame = computed(() => game.value ?? placeholderGame);
       </aside>
 
       <div class="board-area">
-        <TicTacToe :game="boardGame" :interactive="phase === 'playing'" @marked="onMarked" />
+        <TicTacToe :game="boardGame" :interactive="canPlay" @marked="onMarked" />
+        <!-- The other player's reaction pops up big over the board, with a little burst around it -->
+        <div v-if="theirReaction && phase === 'playing'" :key="theirReaction.id" class="incoming" aria-hidden="true">
+          <span
+            v-for="i in BURST"
+            :key="i"
+            class="incoming__spark"
+            :style="`--angle: ${(360 / BURST) * i + 15}deg`"
+          >{{ theirReaction.emoji }}</span>
+          <span class="incoming__emoji">{{ theirReaction.emoji }}</span>
+        </div>
       </div>
     </main>
 
@@ -433,6 +654,7 @@ const boardGame = computed(() => game.value ?? placeholderGame);
 }
 
 .board-area {
+  position: relative;
   grid-area: board;
   padding: clamp(10px, 2.2vw, 24px);
   border-radius: calc(var(--radius-sheet) + 4px);
@@ -519,6 +741,147 @@ const boardGame = computed(() => game.value ?? placeholderGame);
     grid-template-columns: auto minmax(220px, 1fr);
     grid-template-areas: 'board panel';
     align-items: start;
+  }
+}
+
+/* Connection trouble, on either side. Not a live region itself; the announcement covers screen readers. */
+.connection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 1.5px dashed var(--ink-soft);
+  border-radius: var(--radius-control);
+}
+
+.connection--you {
+  border-style: solid;
+  border-color: var(--danger);
+}
+
+.connection__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--ink-soft);
+  animation: connection-blink 1.2s ease-in-out infinite;
+}
+
+.connection--you .connection__dot {
+  background: var(--danger);
+}
+
+.connection__text {
+  flex: 1;
+  min-width: 12rem;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.connection__new {
+  width: 100%;
+}
+
+@keyframes connection-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Incoming reaction: a big emoji that pops, wobbles, floats up and fades, plus small sparks flying out */
+.incoming {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  z-index: 4;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.incoming__emoji,
+.incoming__spark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 1;
+  opacity: 0;
+}
+
+.incoming__emoji {
+  font-size: clamp(5rem, 22vmin, 9rem);
+  filter: drop-shadow(0 10px 18px rgba(15, 30, 54, 0.28));
+  animation: incoming-pop 2.6s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+.incoming__spark {
+  font-size: clamp(1.25rem, 4.5vmin, 2rem);
+  animation: incoming-spark 1.1s cubic-bezier(0.1, 0.7, 0.3, 1) 120ms forwards;
+}
+
+@keyframes incoming-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20%) scale(0.2);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.25) rotate(-8deg);
+  }
+  24% {
+    transform: translate(-50%, -50%) scale(0.95) rotate(6deg);
+  }
+  34% {
+    transform: translate(-50%, -50%) scale(1.05) rotate(-3deg);
+  }
+  44%,
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -130%) scale(0.9);
+  }
+}
+
+@keyframes incoming-spark {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) rotate(calc(-1 * var(--angle))) scale(0.4);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(clamp(-14rem, -36vmin, -7rem)) rotate(calc(-1 * var(--angle))) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No pop or burst: just show the emoji for a moment and fade it out */
+  .incoming__spark {
+    display: none;
+  }
+
+  .incoming__emoji {
+    animation: incoming-fade 2.4s linear forwards !important;
+  }
+}
+
+@keyframes incoming-fade {
+  0%,
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%);
   }
 }
 

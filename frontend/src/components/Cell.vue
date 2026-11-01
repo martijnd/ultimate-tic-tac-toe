@@ -29,6 +29,8 @@ const emit = defineEmits<{
       'cell--last': isLastMove,
       'cell--last-x': isLastMove && mark === 'X',
       'cell--last-o': isLastMove && mark === 'O',
+      // The other player's latest move gets a ring too, so you spot it when you come back to the tab
+      'cell--last-them': isLastMove && !!mark && mark !== previewPlayer,
     }"
     :data-board="boardIndex"
     :data-cell="cellIndex"
@@ -119,12 +121,37 @@ const emit = defineEmits<{
   pointer-events: none;
 }
 
-.cell--last-x::before {
-  background: var(--x);
+.cell--last-x {
+  --last-color: var(--x);
 }
 
-.cell--last-o::before {
-  background: var(--o);
+.cell--last-o {
+  --last-color: var(--o);
+}
+
+.cell--last::before {
+  background: var(--last-color);
+}
+
+/* Ring around the other player's move that lands like a ping */
+.cell--last-them::after {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  border-radius: 999px;
+  border: max(2px, 0.35vmin) solid var(--last-color);
+  pointer-events: none;
+  animation: last-ping 700ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+@keyframes last-ping {
+  from {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+  60% {
+    opacity: 1;
+  }
 }
 
 @media (forced-colors: active) {
@@ -134,6 +161,10 @@ const emit = defineEmits<{
 
   .cell--last::before {
     background: Highlight;
+  }
+
+  .cell--last-them::after {
+    border-color: Highlight;
   }
 }
 </style>

@@ -32,8 +32,9 @@ const nl: Messages = {
   startNewGame: 'Nieuw spel beginnen',
 
   notice: {
-    leftTitle: 'De andere speler heeft het spel verlaten',
-    leftBody: 'Dit spel kan niet verder. Begin een nieuw spel en deel de nieuwe link.',
+    replacedTitle: 'Dit spel is ergens anders geopend',
+    replacedBody: 'Je hebt dit spel in een ander tabblad of venster geopend. Speel daar verder, of speel hier.',
+    playHere: 'Hier spelen',
     fullTitle: 'Dit spel heeft al twee spelers',
     fullBody: 'Begin je eigen spel en nodig iemand anders uit.',
     offlineTitle: 'De spelserver is niet bereikbaar',
@@ -43,7 +44,9 @@ const nl: Messages = {
   },
 
   announce: {
-    otherLeft: 'De andere speler heeft het spel verlaten.',
+    otherOffline: 'De andere speler heeft geen verbinding meer.',
+    otherBack: 'De andere speler is terug.',
+    reconnected: 'Weer verbonden.',
     otherJoined: 'De andere speler doet mee. Je kunt het spel starten.',
     move: (byYou, cell, board) => `${byYou ? 'Jij speelde' : 'De andere speler speelde'} ${cells[cell]} ${inBoard[board]}.`,
     youWon: 'Je hebt gewonnen!',
@@ -53,6 +56,14 @@ const nl: Messages = {
     yourMoveAnywhere: 'Jouw beurt, in een open bord naar keuze.',
     newGameYouFirst: 'Nieuw spel. Jij begint.',
     newGameOtherFirst: 'Nieuw spel. De andere speler begint.',
+    otherWantsRematch: 'De andere speler wil nog een keer.',
+    otherReacted: name => `De andere speler reageerde: ${name}.`,
+  },
+
+  connection: {
+    youOffline: 'Verbinding verbroken. Opnieuw verbinden…',
+    otherOffline: 'De andere speler heeft geen verbinding meer. Wachten tot die terug is…',
+    otherGone: 'De andere speler is nog niet terug. Je kunt blijven wachten of een nieuw spel beginnen.',
   },
 
   lobby: {
@@ -93,7 +104,21 @@ const nl: Messages = {
     waitingAnywhere: player => `Wachten tot ${player} speelt in een van de gemarkeerde borden.`,
     playAgain: 'Nog een keer',
     playAgainNote: 'De andere speler moet ook op Nog een keer drukken.',
+    waitingForRematch: 'Wachten op de andere speler…',
+    otherWantsRematch: 'De andere speler wil nog een keer.',
+    nextYouFirst: 'Volgend spel begin jij.',
+    nextOtherFirst: 'Volgend spel begint de andere speler.',
+    score: 'Stand',
+    draws: n => `${n}× gelijk`,
+    scoreSpoken: (you, them, draws) =>
+      `Stand: jij ${you}, de andere speler ${them}${draws ? `, ${draws} keer gelijk` : ''}.`,
     moveCount: n => `Zet ${n}`,
+  },
+
+  reactions: {
+    label: 'Stuur een reactie',
+    open: 'Reageer',
+    names: ['Applaus', 'Lachen', 'Verbaasd', 'Oei', 'Vuur'],
   },
 
   board: {

@@ -31,8 +31,9 @@ const en = {
   startNewGame: 'Start a new game',
 
   notice: {
-    leftTitle: 'The other player left the game',
-    leftBody: "This game can't continue. Start a new one and share the new link.",
+    replacedTitle: 'This game is open somewhere else',
+    replacedBody: 'You opened this game in another tab or window. Carry on there, or play here instead.',
+    playHere: 'Play here',
     fullTitle: 'This game already has two players',
     fullBody: 'Start your own game and invite someone else to play.',
     offlineTitle: "Can't reach the game server",
@@ -42,7 +43,9 @@ const en = {
   },
 
   announce: {
-    otherLeft: 'The other player left the game.',
+    otherOffline: 'The other player lost their connection.',
+    otherBack: 'The other player is back.',
+    reconnected: 'Reconnected.',
     otherJoined: 'The other player has joined. You can start the game.',
     move: (byYou: boolean, cell: number, board: number) =>
       `${byYou ? 'You' : 'The other player'} played ${cells[cell]} ${inBoard[board]}.`,
@@ -53,6 +56,14 @@ const en = {
     yourMoveAnywhere: 'Your move, in any open board.',
     newGameYouFirst: 'New game. Your move.',
     newGameOtherFirst: 'New game. The other player moves first.',
+    otherWantsRematch: 'The other player wants to play again.',
+    otherReacted: (name: string) => `The other player reacted: ${name}.`,
+  },
+
+  connection: {
+    youOffline: 'Connection lost. Reconnecting…',
+    otherOffline: 'The other player lost their connection. Waiting for them to come back…',
+    otherGone: "The other player hasn't come back yet. You can keep waiting or start a new game.",
   },
 
   lobby: {
@@ -93,7 +104,22 @@ const en = {
     waitingAnywhere: (player: string) => `Waiting for ${player} to play in any highlighted board.`,
     playAgain: 'Play again',
     playAgainNote: 'The other player needs to press Play again too.',
+    waitingForRematch: 'Waiting for the other player…',
+    otherWantsRematch: 'The other player wants to play again.',
+    nextYouFirst: 'You go first next game.',
+    nextOtherFirst: 'The other player goes first next game.',
+    score: 'Score',
+    draws: (n: number) => `${n} ${n === 1 ? 'draw' : 'draws'}`,
+    scoreSpoken: (you: number, them: number, draws: number) =>
+      `Score: you ${you}, the other player ${them}${draws ? `, ${draws} ${draws === 1 ? 'draw' : 'draws'}` : ''}.`,
     moveCount: (n: number) => `Move ${n}`,
+  },
+
+  reactions: {
+    label: 'Send a reaction',
+    open: 'React',
+    // Same order as REACTIONS in src/reactions.ts
+    names: ['Applause', 'Laughing', 'Surprised', 'Grimacing', 'Fire'],
   },
 
   board: {

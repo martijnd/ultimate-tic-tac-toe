@@ -35,6 +35,14 @@ export function playJoinSound() {
   });
 }
 
+/** Little bubbly pop when the other player sends a reaction. */
+export function playReactionSound() {
+  play(() => {
+    tone(620, 0, 0.09, 0.1);
+    tone(930, 0.05, 0.12, 0.08);
+  });
+}
+
 /** Soft wooden tick when the other player makes a move. */
 export function playMoveSound() {
   play(() => {

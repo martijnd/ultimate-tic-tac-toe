@@ -1,9 +1,9 @@
 # Ultimate Tic Tac Toe
 
-Monorepo with a Vue frontend and a Socket.IO relay backend.
+Monorepo with a Vue frontend and a Socket.IO backend.
 
 - `frontend/`: Vue 3 + Vite app, hosted on Vercel at https://ultimatetictactoe.x4d.nl (set the Vercel project's Root Directory to `frontend`).
-- `backend/`: Socket.IO relay server, runs in docker on the Linode behind nginx at https://tic.x4d.nl.
+- `backend/`: Socket.IO server that relays moves and keeps each room's moves in memory so players can reconnect. Runs in docker on the Linode behind nginx at https://tic.x4d.nl.
 
 ## Backend
 
