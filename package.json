@@ -3,10 +3,10 @@
   "private": true,
   "scripts": {
     "install:all": "npm install --prefix frontend && npm install --prefix backend && npm install",
-    "dev": "concurrently -n fe,be -c cyan,magenta \"npm run dev --prefix frontend\" \"npm start --prefix backend\"",
-    "dev:host": "concurrently -n fe,be -c cyan,magenta \"npm run dev --prefix frontend -- --host\" \"HOST=0.0.0.0 ALLOW_LAN=1 npm start --prefix backend\"",
+    "dev": "concurrently -n fe,be -c cyan,magenta \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
+    "dev:host": "concurrently -n fe,be -c cyan,magenta \"npm run dev --prefix frontend -- --host\" \"HOST=0.0.0.0 ALLOW_LAN=1 npm run dev --prefix backend\"",
     "dev:frontend": "npm run dev --prefix frontend",
-    "dev:backend": "npm start --prefix backend",
+    "dev:backend": "npm run dev --prefix backend",
     "build": "npm run build --prefix frontend"
   },
   "devDependencies": {
