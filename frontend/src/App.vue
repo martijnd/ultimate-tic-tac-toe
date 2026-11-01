@@ -124,12 +124,7 @@ function showErrorMessage(message: string) {
     <footer
       class="p-2 text-center text-zinc-500 font-slab border-t-2 border-zinc-600"
     >
-      Made by
-      <a
-        href="https://martijndorsman.nl"
-        target="_blank"
-        class="underline"
-      >Martijn Dorsman</a>
+      Made by Martijn
     </footer>
   </div>
 </template>
