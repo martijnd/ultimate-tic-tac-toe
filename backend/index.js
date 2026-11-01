@@ -11,7 +11,15 @@ const httpServer = createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('ok');
 });
-const io = new Server(httpServer, { cors: { origin: ORIGINS } });
+// ALLOW_LAN=1 (used by `npm run dev:host`) also allows localhost and private-network
+// origins such as http://192.168.1.82:3000, so other devices can reach a dev server.
+const LAN_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/;
+const allowOrigin = (origin, callback) => {
+  const ok = !origin || ORIGINS.includes(origin) || (process.env.ALLOW_LAN === '1' && LAN_ORIGIN.test(origin));
+  callback(null, ok);
+};
+
+const io = new Server(httpServer, { cors: { origin: allowOrigin } });
 
 io.on('connection', (socket) => {
   socket.on('join', ({ code } = {}) => {
