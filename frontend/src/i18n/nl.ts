@@ -129,6 +129,7 @@ const nl: Messages = {
     full: 'vol',
     playHere: 'speel hier',
     zoomOut: 'Uitzoomen',
+    tapZoom: 'Tik op een bord om in te zoomen',
     cell: (cell, mark, isLastMove) =>
       `${cells[cell].charAt(0).toUpperCase()}${cells[cell].slice(1)}: ${mark ?? 'leeg'}${isLastMove ? ', laatste zet' : ''}`,
   },

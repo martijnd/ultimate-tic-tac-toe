@@ -15,6 +15,7 @@ import TicTacToe from './components/TicTacToe.vue';
 import Lobby from './components/Lobby.vue';
 import GameStatus from './components/GameStatus.vue';
 import InstructionsDialog from './components/InstructionsDialog.vue';
+import { tapZoom } from './composables/settings';
 import LanguageSwitch from './components/LanguageSwitch.vue';
 
 // Fallback in case the server never answers a join; it normally says "full" itself.
@@ -481,6 +482,10 @@ const boardGame = computed(() => game.value ?? placeholderGame);
 
       <div class="board-area">
         <TicTacToe :game="boardGame" :interactive="canPlay" @marked="onMarked" />
+        <label class="tap-zoom">
+          <input v-model="tapZoom" type="checkbox" />
+          {{ t.board.tapZoom }}
+        </label>
         <!-- The other player's reaction pops up big over the board, with a little burst around it -->
         <div v-if="theirReaction && phase === 'playing'" :key="theirReaction.id" class="incoming" aria-hidden="true">
           <span
@@ -665,6 +670,30 @@ const boardGame = computed(() => game.value ?? placeholderGame);
   border-radius: calc(var(--radius-sheet) + 4px);
   background: var(--surface);
   border: 1.5px solid var(--rule);
+}
+
+.tap-zoom {
+  display: none;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  margin-top: 0.5rem;
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.tap-zoom input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--ink);
+}
+
+/* Only touch screens get tap-to-zoom, so only they get the switch */
+@media (pointer: coarse) and (max-width: 700px) {
+  .tap-zoom {
+    display: flex;
+  }
 }
 
 .panel {

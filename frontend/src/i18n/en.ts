@@ -130,6 +130,7 @@ const en = {
     full: 'full',
     playHere: 'play here',
     zoomOut: 'Zoom out',
+    tapZoom: 'Tap a board to zoom in',
     cell: (cell: number, mark: string | undefined, isLastMove: boolean) =>
       `${cells[cell].charAt(0).toUpperCase()}${cells[cell].slice(1)}: ${mark ?? 'empty'}${isLastMove ? ', last move' : ''}`,
   },

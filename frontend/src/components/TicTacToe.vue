@@ -5,6 +5,7 @@ import { Board as BoardModel } from '../models/Board';
 import { Cell } from '../models/Cell';
 import Board from './Board.vue';
 import { t } from '../i18n';
+import { tapZoom } from '../composables/settings';
 
 const props = defineProps<{
   game: Game;
@@ -115,7 +116,7 @@ const touchZoom = ref(false);
 let touchQuery: MediaQueryList | null = null;
 
 function syncTouchZoom() {
-  touchZoom.value = !!touchQuery?.matches;
+  touchZoom.value = tapZoom.value && !!touchQuery?.matches;
   if (!touchZoom.value) zoomed.value = null;
 }
 
@@ -124,6 +125,8 @@ onMounted(() => {
   touchQuery.addEventListener('change', syncTouchZoom);
   syncTouchZoom();
 });
+
+watch(tapZoom, syncTouchZoom);
 
 onBeforeUnmount(() => touchQuery?.removeEventListener('change', syncTouchZoom));
 
