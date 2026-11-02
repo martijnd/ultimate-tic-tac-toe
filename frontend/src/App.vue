@@ -632,6 +632,19 @@ const boardGame = computed(() => game.value ?? placeholderGame);
   fill: currentColor;
 }
 
+/* Not enough room next to the buttons: hide the title visually but keep it as the page heading */
+@media (max-width: 459px) {
+  .brand__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 479px) {
   .brand {
     gap: 0.5rem;
