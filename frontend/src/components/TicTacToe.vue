@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Game } from '../models/Game';
 import { Board as BoardModel } from '../models/Board';
 import { Cell } from '../models/Cell';
@@ -107,6 +107,65 @@ function onKeydown(event: KeyboardEvent) {
   focusCell(next.board, next.cell);
 }
 
+// Tap-to-zoom: on a touch screen the 81 cells are too small to hit reliably, so the first tap on
+// a small board zooms in on it and the next tap places the mark.
+const ZOOM_SCALE = 2.7;
+const zoomed = ref<number | null>(null);
+const touchZoom = ref(false);
+let touchQuery: MediaQueryList | null = null;
+
+function syncTouchZoom() {
+  touchZoom.value = !!touchQuery?.matches;
+  if (!touchZoom.value) zoomed.value = null;
+}
+
+onMounted(() => {
+  touchQuery = window.matchMedia('(pointer: coarse) and (max-width: 700px)');
+  touchQuery.addEventListener('change', syncTouchZoom);
+  syncTouchZoom();
+});
+
+onBeforeUnmount(() => touchQuery?.removeEventListener('change', syncTouchZoom));
+
+// Back to the full board when the game ends or is restarted
+watch(
+  () => [props.interactive, props.game.over, props.game.moveCount, props.game] as const,
+  () => {
+    zoomed.value = null;
+  }
+);
+
+const zoomStyle = computed(() => {
+  if (zoomed.value === null) return undefined;
+  const cx = (zoomed.value % 3) - 1;
+  const cy = Math.floor(zoomed.value / 3) - 1;
+  const shift = (n: number) => `${((-ZOOM_SCALE * n) / 3) * 100}%`;
+  return { transform: `translate(${shift(cx)}, ${shift(cy)}) scale(${ZOOM_SCALE})` };
+});
+
+function onClickCapture(event: MouseEvent) {
+  if (!touchZoom.value) return;
+  // Keyboard activation (detail 0) should always place the mark directly
+  if (event.detail === 0 && event.target instanceof HTMLElement && event.target.closest('[data-board]')) return;
+
+  const cell = (event.target as HTMLElement).closest<HTMLElement>('[data-board]');
+  if (!cell) {
+    if (zoomed.value !== null) zoomed.value = null;
+    return;
+  }
+
+  const board = Number(cell.dataset.board);
+  if (zoomed.value === board) {
+    // A tap on a cell you can play places the mark (the click goes through); then zoom back out
+    if (cell.getAttribute('aria-disabled') !== 'true') zoomed.value = null;
+    return;
+  }
+
+  event.stopPropagation();
+  event.preventDefault();
+  zoomed.value = zoomed.value === null ? board : null;
+}
+
 function onCellFocus(board: number, cell: number) {
   tabStop.value = { board, cell };
 }
@@ -116,12 +175,15 @@ function onCellFocus(board: number, cell: number) {
   <div
     ref="root"
     class="global"
-    :class="{ 'global--inactive': !interactive, 'global--over': game.over }"
+    :class="{ 'global--inactive': !interactive, 'global--over': game.over, 'global--zoomed': zoomed !== null }"
     role="group"
     :aria-label="t.board.label"
     :aria-roledescription="t.board.roleDescription"
     @keydown="onKeydown"
+    @keydown.esc="zoomed = null"
+    @click.capture="onClickCapture"
   >
+    <div class="global__inner" :style="zoomStyle">
     <svg class="global__lines" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
       <path pathLength="1" d="M100.5 4 C 98.8 80, 101.6 190, 99.4 296" />
       <path pathLength="1" d="M200.2 4 C 201.8 96, 198.6 210, 200.8 296" />
@@ -141,19 +203,71 @@ function onCellFocus(board: number, cell: number) {
       @marked="(cell: Cell) => emit('marked', board, cell)"
       @cell-focus="(cell: number) => onCellFocus(board.index, cell)"
     />
+    </div>
+    <button v-if="zoomed !== null" type="button" class="global__zoom-out" @click.stop="zoomed = null">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      {{ t.board.zoomOut }}
+    </button>
   </div>
 </template>
 
 <style scoped>
 .global {
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
   width: var(--board-size);
   height: var(--board-size);
   user-select: none;
   -webkit-user-select: none;
+}
+
+.global--zoomed {
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.global__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  transition: transform 240ms cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.global__zoom-out {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  padding: 0 0.9rem 0 0.7rem;
+  border: 1px solid var(--ink-faint);
+  border-radius: 999px;
+  background: var(--paper, Canvas);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--step--1);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.global__zoom-out svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global__inner {
+    transition: none;
+  }
 }
 
 .global--inactive {

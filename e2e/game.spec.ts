@@ -93,3 +93,35 @@ test('moves out of turn or in the wrong board are not possible', async ({ browse
   await cell(guest, 0, 0).click({ force: true });
   await expect(cell(host, 0, 0)).toHaveAttribute('aria-label', /empty/);
 });
+
+test('on a phone the first tap zooms into a board and the second places the mark', async ({ browser }) => {
+  const room = randomRoom();
+  const host = await openPlayer(browser, room);
+  const context = await browser.newContext({
+    baseURL: 'http://localhost:5173',
+    viewport: { width: 375, height: 700 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  await context.addInitScript(() => localStorage.setItem('uttt-locale', 'en'));
+  const guest = await context.newPage();
+  await guest.goto(`/${room}`);
+  await expect(host.getByText('The other player has joined.', { exact: true })).toBeVisible();
+  await host.getByRole('button', { name: 'Start game' }).click();
+  await guest.getByRole('button', { name: 'Start game' }).click();
+  await expect(host.getByRole('heading', { name: 'Your move' })).toBeVisible();
+
+  await cell(host, 3, 8).click();
+  await expect(guest.getByRole('heading', { name: 'Your move' })).toBeVisible();
+
+  // Forced into board 8. The first tap only zooms in...
+  await cell(guest, 8, 0).tap();
+  await expect(cell(guest, 8, 0)).toHaveAttribute('aria-label', /empty/);
+  const size = await cell(guest, 8, 0).boundingBox();
+  expect(size!.width).toBeGreaterThan(44);
+
+  // ...the second one plays and zooms back out.
+  await cell(guest, 8, 0).tap();
+  await expect(cell(guest, 8, 0)).toHaveAttribute('aria-label', /: O/);
+  await expect(guest.getByRole('button', { name: 'Zoom out' })).toHaveCount(0);
+});

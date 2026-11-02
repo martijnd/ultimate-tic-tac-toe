@@ -129,6 +129,7 @@ const en = {
     wonBy: (player: string) => `won by ${player}`,
     full: 'full',
     playHere: 'play here',
+    zoomOut: 'Zoom out',
     cell: (cell: number, mark: string | undefined, isLastMove: boolean) =>
       `${cells[cell].charAt(0).toUpperCase()}${cells[cell].slice(1)}: ${mark ?? 'empty'}${isLastMove ? ', last move' : ''}`,
   },
