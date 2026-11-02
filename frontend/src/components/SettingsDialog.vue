@@ -59,7 +59,9 @@ function onClick(event: MouseEvent) {
 </template>
 
 <style scoped>
+/* A global reset zeroes the margin the browser uses to centre a modal dialog */
 .dialog {
+  margin: auto;
   width: min(460px, calc(100vw - 24px));
   max-height: min(88vh, 860px);
   max-height: min(88svh, 860px);
