@@ -25,6 +25,12 @@ const en = {
   yourTurnTitle: "It's your turn!",
   skipToGame: 'Skip to game',
   howToPlay: 'How to play',
+  settings: {
+    open: 'Settings',
+    title: 'Settings',
+    tapZoom: 'Tap a board to zoom in',
+    tapZoomHint: 'On a touch screen, the first tap on a small board zooms in on it. Tap again to place your mark.',
+  },
   language: 'Language',
   gameStatus: 'Game status',
   footer: 'Made by Martijn',
@@ -130,7 +136,6 @@ const en = {
     full: 'full',
     playHere: 'play here',
     zoomOut: 'Zoom out',
-    tapZoom: 'Tap a board to zoom in',
     cell: (cell: number, mark: string | undefined, isLastMove: boolean) =>
       `${cells[cell].charAt(0).toUpperCase()}${cells[cell].slice(1)}: ${mark ?? 'empty'}${isLastMove ? ', last move' : ''}`,
   },

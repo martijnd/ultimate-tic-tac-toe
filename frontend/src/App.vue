@@ -15,7 +15,7 @@ import TicTacToe from './components/TicTacToe.vue';
 import Lobby from './components/Lobby.vue';
 import GameStatus from './components/GameStatus.vue';
 import InstructionsDialog from './components/InstructionsDialog.vue';
-import { tapZoom } from './composables/settings';
+import SettingsDialog from './components/SettingsDialog.vue';
 import LanguageSwitch from './components/LanguageSwitch.vue';
 
 // Fallback in case the server never answers a join; it normally says "full" itself.
@@ -55,6 +55,7 @@ const replaced = ref(false);
 const otherOffline = ref(false);
 const otherGone = ref(false);
 const showInstructions = ref(false);
+const showSettings = ref(false);
 const announcement = ref('');
 // The tab title says "It's your turn!" while the tab is in the background and you're up.
 const turnTitleShown = ref(false);
@@ -416,6 +417,20 @@ const boardGame = computed(() => game.value ?? placeholderGame);
       </div>
       <div class="topbar__actions">
         <LanguageSwitch />
+        <button
+          type="button"
+          class="btn btn--quiet settings-button"
+          aria-haspopup="dialog"
+          :aria-label="t.settings.open"
+          :title="t.settings.open"
+          @click="showSettings = true"
+        >
+          <svg class="settings-button__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" />
+            <circle cx="12" cy="12" r="6.6" />
+          </svg>
+        </button>
         <button type="button" class="btn btn--quiet help-button" aria-haspopup="dialog" @click="showInstructions = true">
           <svg class="help-button__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M9.2 9.1a2.9 2.9 0 0 1 5.6 1c0 1.9-2.8 2.5-2.8 4.4" />
@@ -482,10 +497,6 @@ const boardGame = computed(() => game.value ?? placeholderGame);
 
       <div class="board-area">
         <TicTacToe :game="boardGame" :interactive="canPlay" @marked="onMarked" />
-        <label class="tap-zoom">
-          <input v-model="tapZoom" type="checkbox" />
-          {{ t.board.tapZoom }}
-        </label>
         <!-- The other player's reaction pops up big over the board, with a little burst around it -->
         <div v-if="theirReaction && phase === 'playing'" :key="theirReaction.id" class="incoming" aria-hidden="true">
           <span
@@ -504,6 +515,7 @@ const boardGame = computed(() => game.value ?? placeholderGame);
     <p class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement }}</p>
 
     <InstructionsDialog :show="showInstructions" @close="showInstructions = false" />
+    <SettingsDialog :show="showSettings" @close="showSettings = false" />
   </div>
 </template>
 
@@ -592,6 +604,20 @@ const boardGame = computed(() => game.value ?? placeholderGame);
   white-space: nowrap;
 }
 
+.topbar .settings-button {
+  width: 44px;
+  padding: 0;
+}
+
+.settings-button__icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+}
+
 .help-button__icon {
   display: none;
   width: 22px;
@@ -670,30 +696,6 @@ const boardGame = computed(() => game.value ?? placeholderGame);
   border-radius: calc(var(--radius-sheet) + 4px);
   background: var(--surface);
   border: 1.5px solid var(--rule);
-}
-
-.tap-zoom {
-  display: none;
-  align-items: center;
-  gap: 0.6rem;
-  min-height: 44px;
-  margin-top: 0.5rem;
-  font-size: var(--step--1);
-  color: var(--ink-soft);
-}
-
-.tap-zoom input {
-  width: 1.25rem;
-  height: 1.25rem;
-  margin: 0;
-  accent-color: var(--ink);
-}
-
-/* Only touch screens get tap-to-zoom, so only they get the switch */
-@media (pointer: coarse) and (max-width: 700px) {
-  .tap-zoom {
-    display: flex;
-  }
 }
 
 .panel {

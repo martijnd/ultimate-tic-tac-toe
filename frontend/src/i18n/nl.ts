@@ -26,6 +26,12 @@ const nl: Messages = {
   yourTurnTitle: 'Jij bent aan de beurt!',
   skipToGame: 'Naar het spel',
   howToPlay: 'Speluitleg',
+  settings: {
+    open: 'Instellingen',
+    title: 'Instellingen',
+    tapZoom: 'Tik op een bord om in te zoomen',
+    tapZoomHint: 'Op een touchscreen zoomt de eerste tik op een klein bord erop in. Tik nog een keer om je teken te zetten.',
+  },
   language: 'Taal',
   gameStatus: 'Spelstatus',
   footer: 'Gemaakt door Martijn',
@@ -129,7 +135,6 @@ const nl: Messages = {
     full: 'vol',
     playHere: 'speel hier',
     zoomOut: 'Uitzoomen',
-    tapZoom: 'Tik op een bord om in te zoomen',
     cell: (cell, mark, isLastMove) =>
       `${cells[cell].charAt(0).toUpperCase()}${cells[cell].slice(1)}: ${mark ?? 'leeg'}${isLastMove ? ', laatste zet' : ''}`,
   },

@@ -103,12 +103,13 @@ test('on a phone with tap-to-zoom switched on, the first tap zooms into a board 
     hasTouch: true,
     isMobile: true,
   });
-  await context.addInitScript(() => {
-    localStorage.setItem('uttt-locale', 'en');
-    localStorage.setItem('uttt-tap-zoom', 'on');
-  });
+  await context.addInitScript(() => localStorage.setItem('uttt-locale', 'en'));
   const guest = await context.newPage();
   await guest.goto(`/${room}`);
+  // Tap-to-zoom is off by default; switch it on in the settings.
+  await guest.getByRole('button', { name: 'Settings' }).click();
+  await guest.getByRole('checkbox', { name: 'Tap a board to zoom in' }).check();
+  await guest.getByRole('button', { name: 'Close' }).click();
   await expect(host.getByText('The other player has joined.', { exact: true })).toBeVisible();
   await host.getByRole('button', { name: 'Start game' }).click();
   await guest.getByRole('button', { name: 'Start game' }).click();
